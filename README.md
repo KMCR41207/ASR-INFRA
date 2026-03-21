@@ -1,7 +1,7 @@
 
   # Professional Website
 
-  This is a code bundle for Professional Website. The original project is available at https://www.figma.com/design/hWGee7H3zbxDMXIcaCfulO/Professional-Website.
+  This is a code bundle for Professional Website.
 
   ## Running the code
 
