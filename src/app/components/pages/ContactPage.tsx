@@ -19,6 +19,17 @@ export function ContactPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Save to localStorage so admin can see it
+    const existing = JSON.parse(localStorage.getItem("contactRequests") || "[]");
+    const newRequest = {
+      id: Date.now(),
+      ...formData,
+      createdAt: new Date().toISOString(),
+      status: "new",
+    };
+    localStorage.setItem("contactRequests", JSON.stringify([...existing, newRequest]));
+
     toast.success("Message sent successfully! We'll get back to you soon.");
     setFormData({
       name: "",
@@ -72,9 +83,9 @@ export function ContactPage() {
               <MapPin className="w-8 h-8 text-accent flex-shrink-0 mt-1" />
               <div>
                 <p className="text-lg font-semibold mb-2">Address</p>
-                <p className="text-gray-200">C5M4+W24, Bommakal Rd, Krishna Nagar</p>
-                <p className="text-gray-200">Housing Board Colony, Karimnagar</p>
-                <p className="text-gray-200">Bommakal, Telangana 505002</p>
+                <p className="text-[#c8d9e8]">C5M4+W24, Bommakal Rd, Krishna Nagar</p>
+                <p className="text-[#c8d9e8]">Housing Board Colony, Karimnagar</p>
+                <p className="text-[#c8d9e8]">Bommakal, Telangana 505002</p>
               </div>
             </div>
 
@@ -83,8 +94,8 @@ export function ContactPage() {
               <Phone className="w-8 h-8 text-accent flex-shrink-0 mt-1" />
               <div>
                 <p className="text-lg font-semibold mb-2">Phone</p>
-                <p className="text-gray-200">+91 98765 43210</p>
-                <p className="text-gray-200">+91 98765 43211</p>
+                <p className="text-[#c8d9e8]">+91 98765 43210</p>
+                <p className="text-[#c8d9e8]">+91 98765 43211</p>
               </div>
             </div>
 
@@ -93,8 +104,8 @@ export function ContactPage() {
               <Mail className="w-8 h-8 text-accent flex-shrink-0 mt-1" />
               <div>
                 <p className="text-lg font-semibold mb-2">Email</p>
-                <p className="text-gray-200">info@asrinfra.com</p>
-                <p className="text-gray-200">sales@asrinfra.com</p>
+                <p className="text-[#c8d9e8]">info@asrinfra.com</p>
+                <p className="text-[#c8d9e8]">sales@asrinfra.com</p>
               </div>
             </div>
           </div>
@@ -105,7 +116,7 @@ export function ContactPage() {
               href={mapsLink}
               target="_blank"
               rel="noopener noreferrer"
-              style={{ backgroundColor: '#ff6b2c' }}
+              style={{ backgroundColor: '#E8500A' }}
               className="inline-block hover:opacity-90 text-white font-semibold py-3 px-8 rounded-lg transition-all shadow-lg"
             >
               📍 View on Google Maps
@@ -115,7 +126,7 @@ export function ContactPage() {
       </section>
 
       {/* Contact Info Cards */}
-      <section className="py-20 px-4 bg-gray-50">
+      <section className="py-20 px-4 bg-[#e8f0f7]">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {contactInfo.map((info, index) => (
@@ -235,7 +246,7 @@ export function ContactPage() {
                 href={mapsLink}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="block bg-gray-200 rounded-lg h-[500px] flex items-center justify-center hover:bg-gray-300 transition-colors cursor-pointer"
+                className="block bg-[#c8d9e8] rounded-lg h-[500px] flex items-center justify-center hover:bg-[#a8c0d6] transition-colors cursor-pointer"
               >
                 <div className="text-center text-muted-foreground">
                   <MapPin className="w-16 h-16 mx-auto mb-4 text-accent" />
@@ -254,7 +265,7 @@ export function ContactPage() {
       <section className="py-20 px-4 bg-primary text-white">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-4xl mb-6">Book Your Service Now</h2>
-          <p className="text-xl mb-8 text-gray-200">
+          <p className="text-xl mb-8 text-[#c8d9e8]">
             Ready to get started? Request a quote and we'll respond within 24 hours.
           </p>
         </div>

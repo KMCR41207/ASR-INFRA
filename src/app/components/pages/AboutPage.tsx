@@ -38,7 +38,7 @@ export function AboutPage() {
       <section className="bg-primary text-white py-20 px-4">
         <div className="max-w-7xl mx-auto text-center">
           <h1 className="text-5xl mb-6">About ASR INFRA</h1>
-          <p className="text-xl text-gray-200 max-w-3xl mx-auto">
+          <p className="text-xl text-[#c8d9e8] max-w-3xl mx-auto">
             Building trust through reliable transportation and quality supply solutions
           </p>
         </div>
@@ -77,7 +77,7 @@ export function AboutPage() {
       </section>
 
       {/* Mission & Vision */}
-      <section className="py-20 px-4 bg-gray-50">
+      <section className="py-20 px-4 bg-[#e8f0f7]">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <Card className="border-t-4 border-t-accent">
@@ -133,7 +133,7 @@ export function AboutPage() {
       </section>
 
       {/* Values */}
-      <section className="py-20 px-4 bg-gray-50">
+      <section className="py-20 px-4 bg-[#e8f0f7]">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-4xl mb-4 text-primary">Our Values</h2>
@@ -160,7 +160,7 @@ export function AboutPage() {
       <section className="py-20 px-4 bg-primary text-white">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-4xl mb-6">Join Hundreds of Satisfied Clients</h2>
-          <p className="text-xl mb-8 text-gray-200">
+          <p className="text-xl mb-8 text-[#c8d9e8]">
             Experience the ASR INFRA difference. Contact us today to learn more about our services.
           </p>
         </div>

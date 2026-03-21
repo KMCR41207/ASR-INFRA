@@ -1,11 +1,9 @@
 import { Link } from "react-router";
 import { Button } from "../ui/button";
 import { Card, CardContent } from "../ui/card";
+import FlowingMenu from "../ui/FlowingMenu";
+import GradientText from "../ui/GradientText";
 import {
-  Truck,
-  PackageCheck,
-  Mountain,
-  Factory,
   Clock,
   DollarSign,
   ShieldCheck,
@@ -13,30 +11,30 @@ import {
   Phone,
   FileText,
   CheckCircle,
-  TruckIcon,
+  Truck,
 } from "lucide-react";
 
 export function HomePage() {
   const services = [
     {
-      icon: <Truck className="w-12 h-12 text-accent" />,
-      title: "Goods Transportation",
-      description: "Efficient and secure transportation of goods across the country with real-time tracking.",
+      link: '/services',
+      text: 'Transportation',
+      image: 'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=600&h=400&fit=crop',
     },
     {
-      icon: <TruckIcon className="w-12 h-12 text-accent" />,
-      title: "Trucking Services",
-      description: "Comprehensive trucking solutions for all your logistics and delivery needs.",
+      link: '/services',
+      text: 'Goods Carrier',
+      image: 'https://images.unsplash.com/photo-1519003722824-194d4455a60c?w=600&h=400&fit=crop',
     },
     {
-      icon: <Mountain className="w-12 h-12 text-accent" />,
-      title: "Sand Supply",
-      description: "High-quality sand supply for construction projects of all sizes.",
+      link: '/services',
+      text: 'Raw Material Import',
+      image: 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=600&h=400&fit=crop',
     },
     {
-      icon: <Factory className="w-12 h-12 text-accent" />,
-      title: "Steel Supply",
-      description: "Premium steel materials delivered directly to your construction site.",
+      link: '/services',
+      text: 'Steel Supply',
+      image: '/steel.jpg',
     },
   ];
 
@@ -106,9 +104,16 @@ export function HomePage() {
 
         <div className="relative z-10 text-center text-white max-w-4xl px-4">
           <h1 className="text-5xl md:text-6xl mb-6">
-            ASR INFRA – Reliable Transportation & Supply Services
+            <GradientText
+              colors={["#ffffff", "#E8500A", "#ffb347", "#E8500A", "#ffffff"]}
+              animationSpeed={6}
+              showBorder={false}
+              className="text-5xl md:text-6xl font-bold"
+            >
+              ASR INFRA – Reliable Transportation & Supply Services
+            </GradientText>
           </h1>
-          <p className="text-xl md:text-2xl mb-8 text-gray-200">
+          <p className="text-xl md:text-2xl mb-8 text-[#c8d9e8]">
             Fast, secure, and affordable trucking, sand & steel supply solutions
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -127,7 +132,7 @@ export function HomePage() {
       </section>
 
       {/* Services Section */}
-      <section className="py-20 px-4 bg-gray-50">
+      <section className="py-20 px-4 bg-[#e8f0f7]">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-4xl mb-4 text-primary">Our Services</h2>
@@ -135,18 +140,17 @@ export function HomePage() {
               Comprehensive solutions for all your transportation and supply needs
             </p>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {services.map((service, index) => (
-              <Card key={index} className="hover:shadow-xl transition-shadow border-t-4 border-t-accent">
-                <CardContent className="p-6 text-center">
-                  <div className="flex justify-center mb-4">{service.icon}</div>
-                  <h3 className="mb-3 text-primary">{service.title}</h3>
-                  <p className="text-muted-foreground">{service.description}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+        </div>
+        <div style={{ height: '500px', position: 'relative' }}>
+          <FlowingMenu
+            items={services}
+            speed={15}
+            textColor="#ffffff"
+            bgColor="#0F2A44"
+            marqueeBgColor="#E8500A"
+            marqueeTextColor="#ffffff"
+            borderColor="#ffffff"
+          />
         </div>
       </section>
 
@@ -173,7 +177,7 @@ export function HomePage() {
       </section>
 
       {/* Process Section */}
-      <section className="py-20 px-4 bg-gray-50">
+      <section className="py-20 px-4 bg-[#e8f0f7]">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-4xl mb-4 text-primary">How It Works</h2>
@@ -236,7 +240,7 @@ export function HomePage() {
       <section className="py-20 px-4 bg-primary text-white">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-4xl mb-6">Ready to Get Started?</h2>
-          <p className="text-xl mb-8 text-gray-200">
+          <p className="text-xl mb-8 text-[#c8d9e8]">
             Contact us today for a free quote and experience reliable service
           </p>
           <Link to="/quote">

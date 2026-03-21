@@ -15,6 +15,15 @@ export function QuotePage() {
     serviceType: "",
     loadDetails: "",
     preferredDate: "",
+    // Dynamic fields
+    quantity: "",
+    unit: "",
+    steelType: "",
+    steelGrade: "",
+    sandType: "",
+    sandGrade: "",
+    materialType: "",
+    vehicleType: "",
     name: "",
     phone: "",
     email: "",
@@ -22,6 +31,17 @@ export function QuotePage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Save to localStorage so admin can see it
+    const existing = JSON.parse(localStorage.getItem("quoteRequests") || "[]");
+    const newRequest = {
+      id: Date.now(),
+      ...formData,
+      createdAt: new Date().toISOString(),
+      status: "new",
+    };
+    localStorage.setItem("quoteRequests", JSON.stringify([...existing, newRequest]));
+
     toast.success("Quote request submitted! We'll contact you shortly with pricing details.");
     setFormData({
       pickupLocation: "",
@@ -29,6 +49,14 @@ export function QuotePage() {
       serviceType: "",
       loadDetails: "",
       preferredDate: "",
+      quantity: "",
+      unit: "",
+      steelType: "",
+      steelGrade: "",
+      sandType: "",
+      sandGrade: "",
+      materialType: "",
+      vehicleType: "",
       name: "",
       phone: "",
       email: "",
@@ -54,7 +82,7 @@ export function QuotePage() {
       <section className="bg-primary text-white py-20 px-4">
         <div className="max-w-7xl mx-auto text-center">
           <h1 className="text-5xl mb-6">Request a Quote</h1>
-          <p className="text-xl text-gray-200 max-w-3xl mx-auto">
+          <p className="text-xl text-[#c8d9e8] max-w-3xl mx-auto">
             Get a competitive quote for your transportation or supply needs in minutes
           </p>
         </div>
@@ -95,6 +123,271 @@ export function QuotePage() {
                         </SelectContent>
                       </Select>
                     </div>
+
+                    {/* Dynamic Fields for Steel Supply */}
+                    {formData.serviceType === "steel-supply" && (
+                      <div className="space-y-4 p-4 bg-[#e8f0f7] rounded-lg">
+                        <h4 className="font-semibold text-primary">Steel Details</h4>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <Label htmlFor="steelType">Steel Type *</Label>
+                            <Select
+                              value={formData.steelType}
+                              onValueChange={(value) => setFormData({ ...formData, steelType: value })}
+                              required
+                            >
+                              <SelectTrigger className="mt-2">
+                                <SelectValue placeholder="Select type" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="tmt-bars">TMT Bars</SelectItem>
+                                <SelectItem value="angles">Angles</SelectItem>
+                                <SelectItem value="channels">Channels</SelectItem>
+                                <SelectItem value="beams">Beams</SelectItem>
+                                <SelectItem value="plates">Plates</SelectItem>
+                                <SelectItem value="sheets">Sheets</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div>
+                            <Label htmlFor="steelGrade">Grade *</Label>
+                            <Select
+                              value={formData.steelGrade}
+                              onValueChange={(value) => setFormData({ ...formData, steelGrade: value })}
+                              required
+                            >
+                              <SelectTrigger className="mt-2">
+                                <SelectValue placeholder="Select grade" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="fe-415">Fe 415</SelectItem>
+                                <SelectItem value="fe-500">Fe 500</SelectItem>
+                                <SelectItem value="fe-550">Fe 550</SelectItem>
+                                <SelectItem value="fe-600">Fe 600</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <Label htmlFor="quantity">Quantity *</Label>
+                            <Input
+                              id="quantity"
+                              name="quantity"
+                              type="number"
+                              value={formData.quantity}
+                              onChange={handleChange}
+                              required
+                              placeholder="Enter quantity"
+                              className="mt-2"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="unit">Unit *</Label>
+                            <Select
+                              value={formData.unit}
+                              onValueChange={(value) => setFormData({ ...formData, unit: value })}
+                              required
+                            >
+                              <SelectTrigger className="mt-2">
+                                <SelectValue placeholder="Select unit" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="tons">Tons</SelectItem>
+                                <SelectItem value="kg">Kilograms</SelectItem>
+                                <SelectItem value="pieces">Pieces</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Dynamic Fields for Sand Supply */}
+                    {formData.serviceType === "sand-supply" && (
+                      <div className="space-y-4 p-4 bg-[#e8f0f7] rounded-lg">
+                        <h4 className="font-semibold text-primary">Sand Details</h4>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <Label htmlFor="sandType">Sand Type *</Label>
+                            <Select
+                              value={formData.sandType}
+                              onValueChange={(value) => setFormData({ ...formData, sandType: value })}
+                              required
+                            >
+                              <SelectTrigger className="mt-2">
+                                <SelectValue placeholder="Select type" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="river-sand">River Sand</SelectItem>
+                                <SelectItem value="m-sand">M-Sand (Manufactured)</SelectItem>
+                                <SelectItem value="p-sand">P-Sand (Plastering)</SelectItem>
+                                <SelectItem value="coarse-sand">Coarse Sand</SelectItem>
+                                <SelectItem value="fine-sand">Fine Sand</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div>
+                            <Label htmlFor="sandGrade">Grade *</Label>
+                            <Select
+                              value={formData.sandGrade}
+                              onValueChange={(value) => setFormData({ ...formData, sandGrade: value })}
+                              required
+                            >
+                              <SelectTrigger className="mt-2">
+                                <SelectValue placeholder="Select grade" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="grade-1">Grade 1 (Premium)</SelectItem>
+                                <SelectItem value="grade-2">Grade 2 (Standard)</SelectItem>
+                                <SelectItem value="grade-3">Grade 3 (Economy)</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <Label htmlFor="quantity">Quantity *</Label>
+                            <Input
+                              id="quantity"
+                              name="quantity"
+                              type="number"
+                              value={formData.quantity}
+                              onChange={handleChange}
+                              required
+                              placeholder="Enter quantity"
+                              className="mt-2"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="unit">Unit *</Label>
+                            <Select
+                              value={formData.unit}
+                              onValueChange={(value) => setFormData({ ...formData, unit: value })}
+                              required
+                            >
+                              <SelectTrigger className="mt-2">
+                                <SelectValue placeholder="Select unit" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="tons">Tons</SelectItem>
+                                <SelectItem value="cubic-meters">Cubic Meters</SelectItem>
+                                <SelectItem value="loads">Loads</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Dynamic Fields for Raw Material Import */}
+                    {formData.serviceType === "raw-material-import" && (
+                      <div className="space-y-4 p-4 bg-[#e8f0f7] rounded-lg">
+                        <h4 className="font-semibold text-primary">Material Details</h4>
+                        <div>
+                          <Label htmlFor="materialType">Material Type *</Label>
+                          <Input
+                            id="materialType"
+                            name="materialType"
+                            value={formData.materialType}
+                            onChange={handleChange}
+                            required
+                            placeholder="e.g., Iron Ore, Coal, Cement, etc."
+                            className="mt-2"
+                          />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <Label htmlFor="quantity">Quantity *</Label>
+                            <Input
+                              id="quantity"
+                              name="quantity"
+                              type="number"
+                              value={formData.quantity}
+                              onChange={handleChange}
+                              required
+                              placeholder="Enter quantity"
+                              className="mt-2"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="unit">Unit *</Label>
+                            <Select
+                              value={formData.unit}
+                              onValueChange={(value) => setFormData({ ...formData, unit: value })}
+                              required
+                            >
+                              <SelectTrigger className="mt-2">
+                                <SelectValue placeholder="Select unit" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="tons">Tons</SelectItem>
+                                <SelectItem value="kg">Kilograms</SelectItem>
+                                <SelectItem value="containers">Containers</SelectItem>
+                                <SelectItem value="pallets">Pallets</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Dynamic Fields for Transportation/Goods Carrier */}
+                    {(formData.serviceType === "transportation" || formData.serviceType === "goods-carrier") && (
+                      <div className="space-y-4 p-4 bg-[#e8f0f7] rounded-lg">
+                        <h4 className="font-semibold text-primary">Transport Details</h4>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <Label htmlFor="vehicleType">Vehicle Type *</Label>
+                            <Select
+                              value={formData.vehicleType}
+                              onValueChange={(value) => setFormData({ ...formData, vehicleType: value })}
+                              required
+                            >
+                              <SelectTrigger className="mt-2">
+                                <SelectValue placeholder="Select vehicle" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="mini-truck">Mini Truck (1-2 Tons)</SelectItem>
+                                <SelectItem value="medium-truck">Medium Truck (3-6 Tons)</SelectItem>
+                                <SelectItem value="large-truck">Large Truck (7-12 Tons)</SelectItem>
+                                <SelectItem value="trailer">Trailer (12+ Tons)</SelectItem>
+                                <SelectItem value="container">Container Truck</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div>
+                            <Label htmlFor="quantity">Estimated Weight *</Label>
+                            <Input
+                              id="quantity"
+                              name="quantity"
+                              type="number"
+                              value={formData.quantity}
+                              onChange={handleChange}
+                              required
+                              placeholder="Enter weight"
+                              className="mt-2"
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <Label htmlFor="unit">Unit *</Label>
+                          <Select
+                            value={formData.unit}
+                            onValueChange={(value) => setFormData({ ...formData, unit: value })}
+                            required
+                          >
+                            <SelectTrigger className="mt-2">
+                              <SelectValue placeholder="Select unit" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="tons">Tons</SelectItem>
+                              <SelectItem value="kg">Kilograms</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                    )}
 
                     {/* Pickup Location */}
                     <div>
@@ -259,7 +552,7 @@ export function QuotePage() {
       </section>
 
       {/* Trust Section */}
-      <section className="py-20 px-4 bg-gray-50">
+      <section className="py-20 px-4 bg-[#e8f0f7]">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-4xl mb-4 text-primary">Trusted by Industry Leaders</h2>

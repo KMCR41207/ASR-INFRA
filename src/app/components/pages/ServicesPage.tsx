@@ -58,7 +58,7 @@ export function ServicesPage() {
         "Timely delivery guaranteed",
         "Competitive market rates",
       ],
-      image: "https://images.unsplash.com/photo-1593111415629-479b8c735255?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzdGVlbCUyMGJlYW1zJTIwY29uc3RydWN0aW9uJTIwc2l0ZXxlbnwxfHx8fDE3NzM5Mzc1MDl8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      image: "/steel.jpg",
     },
   ];
 
@@ -68,7 +68,7 @@ export function ServicesPage() {
       <section className="bg-primary text-white py-20 px-4">
         <div className="max-w-7xl mx-auto text-center">
           <h1 className="text-5xl mb-6">Our Services</h1>
-          <p className="text-xl text-gray-200 max-w-3xl mx-auto">
+          <p className="text-xl text-[#c8d9e8] max-w-3xl mx-auto">
             Comprehensive transportation and supply solutions tailored to meet your business needs
           </p>
         </div>
@@ -117,7 +117,7 @@ export function ServicesPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-4 bg-gray-50">
+      <section className="py-20 px-4 bg-[#e8f0f7]">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-4xl mb-6 text-primary">Need a Custom Solution?</h2>
           <p className="text-xl text-muted-foreground mb-8">

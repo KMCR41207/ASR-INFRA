@@ -12,7 +12,7 @@ export function Footer() {
               <span className="text-2xl font-bold">ASR</span>
               <span className="text-2xl font-bold text-accent ml-1">INFRA</span>
             </div>
-            <p className="text-gray-300 text-sm">
+            <p className="text-[#a8c0d6] text-sm">
               Reliable transportation and supply services for construction and logistics needs.
             </p>
           </div>
@@ -22,28 +22,36 @@ export function Footer() {
             <h3 className="font-semibold mb-4">Quick Links</h3>
             <ul className="space-y-2">
               <li>
-                <Link to="/" className="text-gray-300 hover:text-accent transition-colors text-sm">
+                <Link to="/" className="text-[#a8c0d6] hover:text-accent transition-colors text-sm">
                   Home
                 </Link>
               </li>
               <li>
-                <Link to="/services" className="text-gray-300 hover:text-accent transition-colors text-sm">
+                <Link to="/services" className="text-[#a8c0d6] hover:text-accent transition-colors text-sm">
                   Services
                 </Link>
               </li>
               <li>
-                <Link to="/about" className="text-gray-300 hover:text-accent transition-colors text-sm">
+                <Link to="/about" className="text-[#a8c0d6] hover:text-accent transition-colors text-sm">
                   About Us
                 </Link>
               </li>
               <li>
-                <Link to="/contact" className="text-gray-300 hover:text-accent transition-colors text-sm">
+                <Link to="/contact" className="text-[#a8c0d6] hover:text-accent transition-colors text-sm">
                   Contact
                 </Link>
               </li>
               <li>
-                <Link to="/quote" className="text-gray-300 hover:text-accent transition-colors text-sm">
+                <Link to="/quote" className="text-[#a8c0d6] hover:text-accent transition-colors text-sm">
                   Get Quote
+                </Link>
+              </li>
+              <li className="pt-2">
+                <Link 
+                  to="/admin/login" 
+                  className="inline-block bg-accent/20 hover:bg-accent text-white font-semibold py-1.5 px-3 rounded transition-all text-sm border border-accent"
+                >
+                  🔐 Admin
                 </Link>
               </li>
             </ul>
@@ -52,7 +60,7 @@ export function Footer() {
           {/* Services */}
           <div>
             <h3 className="font-semibold mb-4">Our Services</h3>
-            <ul className="space-y-2 text-sm text-gray-300">
+            <ul className="space-y-2 text-sm text-[#a8c0d6]">
               <li>Goods Transportation</li>
               <li>Trucking Services</li>
               <li>Sand Supply</li>
@@ -66,17 +74,17 @@ export function Footer() {
             <ul className="space-y-3">
               <li className="flex items-start space-x-3 text-sm">
                 <MapPin size={18} className="text-accent mt-1 flex-shrink-0" />
-                <span className="text-gray-300">
+                <span className="text-[#a8c0d6]">
                   C5M4+W24, Bommakal Rd, Krishna Nagar, Housing Board Colony, Karimnagar, Bommakal, Telangana 505002
                 </span>
               </li>
               <li className="flex items-center space-x-3 text-sm">
                 <Phone size={18} className="text-accent flex-shrink-0" />
-                <span className="text-gray-300">+91 98765 43210</span>
+                <span className="text-[#a8c0d6]">+91 98765 43210</span>
               </li>
               <li className="flex items-center space-x-3 text-sm">
                 <Mail size={18} className="text-accent flex-shrink-0" />
-                <span className="text-gray-300">info@asrinfra.com</span>
+                <span className="text-[#a8c0d6]">info@asrinfra.com</span>
               </li>
             </ul>
             
@@ -95,22 +103,22 @@ export function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="mt-8 pt-8 border-t border-gray-700">
+        <div className="mt-8 pt-8 border-t border-[#1a3d5c]">
           <div className="flex flex-col md:flex-row justify-between items-center">
-            <p className="text-gray-400 text-sm">
+            <p className="text-[#7a9ab5] text-sm">
               © 2026 ASR INFRA. All rights reserved.
             </p>
             <div className="flex space-x-4 mt-4 md:mt-0">
-              <a href="#" className="text-gray-400 hover:text-accent transition-colors">
+              <a href="#" className="text-[#7a9ab5] hover:text-accent transition-colors">
                 <Facebook size={20} />
               </a>
-              <a href="#" className="text-gray-400 hover:text-accent transition-colors">
+              <a href="#" className="text-[#7a9ab5] hover:text-accent transition-colors">
                 <Twitter size={20} />
               </a>
-              <a href="#" className="text-gray-400 hover:text-accent transition-colors">
+              <a href="#" className="text-[#7a9ab5] hover:text-accent transition-colors">
                 <Linkedin size={20} />
               </a>
-              <a href="#" className="text-gray-400 hover:text-accent transition-colors">
+              <a href="#" className="text-[#7a9ab5] hover:text-accent transition-colors">
                 <Instagram size={20} />
               </a>
             </div>
