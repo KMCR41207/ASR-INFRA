@@ -5,7 +5,7 @@ export function FloatingActions() {
     <div className="fixed bottom-6 right-6 flex flex-col gap-3 z-40">
       {/* WhatsApp Button */}
       <a
-        href="https://wa.me/919876543210"
+        href="https://wa.me/918142452633"
         target="_blank"
         rel="noopener noreferrer"
         className="bg-green-500 hover:bg-green-600 text-white p-4 rounded-full shadow-lg transition-all hover:scale-110"
