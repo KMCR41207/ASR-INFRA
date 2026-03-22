@@ -5,8 +5,11 @@ import { Card, CardContent, CardHeader } from "../ui/card";
 import { Badge } from "../ui/badge";
 import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
-import { LogOut, Mail, Phone, User, Calendar, MessageSquare, MapPin, Package, Trash2, Tag } from "lucide-react";
+import { Label } from "../ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
+import { LogOut, Mail, Phone, User, Calendar, MessageSquare, MapPin, Package, Trash2, Tag, Plus, IndianRupee, ArrowLeftRight, CheckCircle, XCircle, Send } from "lucide-react";
 import { toast } from "sonner";
+import { getOffers, createOffer, adminRespondToOffer, type Offer } from "../../lib/offerStore";
 
 interface QuoteRequest {
   id: number;
@@ -46,9 +49,15 @@ interface ContactRequest {
 
 export function AdminDashboardPage() {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<"quotes" | "contacts">("quotes");
+  const [activeTab, setActiveTab] = useState<"quotes" | "contacts" | "offers">("quotes");
   const [quoteRequests, setQuoteRequests] = useState<QuoteRequest[]>([]);
   const [contactRequests, setContactRequests] = useState<ContactRequest[]>([]);
+  const [offers, setOffers] = useState<Offer[]>([]);
+  const [showNewOffer, setShowNewOffer] = useState(false);
+  const [selectedOffer, setSelectedOffer] = useState<Offer | null>(null);
+  const [newOffer, setNewOffer] = useState({ userId: "", userName: "", title: "", description: "", originalAmount: "", adminNotes: "", expiryDate: "" });
+  const [reviseAmount, setReviseAmount] = useState("");
+  const [reviseMessage, setReviseMessage] = useState("");
   const [editingNote, setEditingNote] = useState<number | null>(null);
   const [editingOffer, setEditingOffer] = useState<number | null>(null);
   const [noteText, setNoteText] = useState("");
@@ -62,6 +71,7 @@ export function AdminDashboardPage() {
   const loadData = () => {
     setQuoteRequests(JSON.parse(localStorage.getItem("quoteRequests") || "[]"));
     setContactRequests(JSON.parse(localStorage.getItem("contactRequests") || "[]"));
+    setOffers(getOffers());
   };
 
   const handleLogout = () => {
@@ -182,6 +192,12 @@ export function AdminDashboardPage() {
             className={`px-6 py-2 rounded-lg font-semibold transition-all ${activeTab === "contacts" ? "bg-primary text-white" : "bg-white text-primary border border-primary"}`}
           >
             Contact Requests ({contactRequests.length})
+          </button>
+          <button
+            onClick={() => setActiveTab("offers")}
+            className={`px-6 py-2 rounded-lg font-semibold transition-all ${activeTab === "offers" ? "bg-accent text-white" : "bg-white text-accent border border-accent"}`}
+          >
+            Offers ({offers.length})
           </button>
         </div>
 
@@ -358,6 +374,262 @@ export function AdminDashboardPage() {
                 </CardContent>
               </Card>
             ))}
+          </div>
+        )}
+        {/* Offers Tab */}
+        {activeTab === "offers" && (
+          <div className="space-y-6">
+            {/* Create New Offer */}
+            <Card className="border-l-4 border-l-accent">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <p className="font-bold text-primary flex items-center gap-2">
+                    <Tag className="w-5 h-5 text-accent" /> Offer Management
+                  </p>
+                  <Button
+                    onClick={() => { setShowNewOffer(!showNewOffer); setSelectedOffer(null); }}
+                    className="bg-accent text-white hover:bg-accent/90 gap-2"
+                    size="sm"
+                  >
+                    <Plus className="w-4 h-4" /> {showNewOffer ? "Cancel" : "Create New Offer"}
+                  </Button>
+                </div>
+              </CardHeader>
+              {showNewOffer && (
+                <CardContent>
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      if (!newOffer.userId || !newOffer.title || !newOffer.originalAmount) {
+                        toast.error("Fill in all required fields");
+                        return;
+                      }
+                      createOffer({
+                        userId: newOffer.userId,
+                        userName: newOffer.userName,
+                        title: newOffer.title,
+                        description: newOffer.description,
+                        originalAmount: Number(newOffer.originalAmount),
+                        adminNotes: newOffer.adminNotes,
+                        expiryDate: newOffer.expiryDate || undefined,
+                      });
+                      toast.success("Offer created and sent to user!");
+                      setNewOffer({ userId: "", userName: "", title: "", description: "", originalAmount: "", adminNotes: "", expiryDate: "" });
+                      setShowNewOffer(false);
+                      loadData();
+                    }}
+                    className="grid grid-cols-1 md:grid-cols-2 gap-4"
+                  >
+                    <div>
+                      <Label>User Contact (phone/email) *</Label>
+                      <Input className="mt-1" value={newOffer.userId} onChange={e => setNewOffer(p => ({ ...p, userId: e.target.value }))} placeholder="e.g. 9876543210 or user@email.com" required />
+                    </div>
+                    <div>
+                      <Label>User Name</Label>
+                      <Input className="mt-1" value={newOffer.userName} onChange={e => setNewOffer(p => ({ ...p, userName: e.target.value }))} placeholder="Customer name" />
+                    </div>
+                    <div>
+                      <Label>Offer Title *</Label>
+                      <Input className="mt-1" value={newOffer.title} onChange={e => setNewOffer(p => ({ ...p, title: e.target.value }))} placeholder="e.g. Steel Supply — 10 Tons" required />
+                    </div>
+                    <div>
+                      <Label>Offer Amount (₹) *</Label>
+                      <div className="relative mt-1">
+                        <IndianRupee className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                        <Input className="pl-9" type="number" min={1} value={newOffer.originalAmount} onChange={e => setNewOffer(p => ({ ...p, originalAmount: e.target.value }))} placeholder="150000" required />
+                      </div>
+                    </div>
+                    <div className="md:col-span-2">
+                      <Label>Description</Label>
+                      <Textarea className="mt-1" rows={2} value={newOffer.description} onChange={e => setNewOffer(p => ({ ...p, description: e.target.value }))} placeholder="Describe the offer details..." />
+                    </div>
+                    <div>
+                      <Label>Admin Notes (internal)</Label>
+                      <Input className="mt-1" value={newOffer.adminNotes} onChange={e => setNewOffer(p => ({ ...p, adminNotes: e.target.value }))} placeholder="Internal notes..." />
+                    </div>
+                    <div>
+                      <Label>Expiry Date (optional)</Label>
+                      <Input className="mt-1" type="date" value={newOffer.expiryDate} onChange={e => setNewOffer(p => ({ ...p, expiryDate: e.target.value }))} />
+                    </div>
+                    <div className="md:col-span-2">
+                      <Button type="submit" className="bg-accent text-white hover:bg-accent/90 gap-2">
+                        <Send className="w-4 h-4" /> Send Offer to User
+                      </Button>
+                    </div>
+                  </form>
+                </CardContent>
+              )}
+            </Card>
+
+            {/* Offer Detail / Negotiation View */}
+            {selectedOffer && (
+              <Card className="border-2 border-accent">
+                <CardHeader>
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <div>
+                      <p className="font-bold text-primary text-lg">{selectedOffer.title}</p>
+                      <p className="text-sm text-muted-foreground">{selectedOffer.userName || selectedOffer.userId}</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className={`text-xs font-semibold px-3 py-1 rounded-full border ${
+                        selectedOffer.status === "pending" ? "bg-yellow-100 text-yellow-700 border-yellow-200" :
+                        selectedOffer.status === "counter_sent" ? "bg-blue-100 text-blue-700 border-blue-200" :
+                        selectedOffer.status === "accepted" ? "bg-green-100 text-green-700 border-green-200" :
+                        "bg-red-100 text-red-700 border-red-200"
+                      }`}>{selectedOffer.status.replace("_", " ").toUpperCase()}</span>
+                      <Button size="sm" variant="outline" onClick={() => setSelectedOffer(null)}>Close</Button>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {/* Negotiation History */}
+                  <div className="bg-[#e8f0f7] rounded-xl p-4 space-y-3 max-h-72 overflow-y-auto">
+                    {selectedOffer.history.map((entry, i) => {
+                      const isAdmin = entry.author === "admin";
+                      return (
+                        <div key={i} className={`flex gap-3 ${isAdmin ? "" : "flex-row-reverse"}`}>
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-white text-xs font-bold ${isAdmin ? "bg-primary" : "bg-accent"}`}>
+                            {isAdmin ? "A" : "U"}
+                          </div>
+                          <div className={`max-w-[70%]`}>
+                            <div className={`rounded-2xl px-4 py-3 ${isAdmin ? "bg-white rounded-tl-none" : "bg-primary text-white rounded-tr-none"}`}>
+                              {entry.amount && (
+                                <p className={`font-bold text-base mb-1 ${isAdmin ? "text-primary" : "text-accent"}`}>
+                                  ₹{entry.amount.toLocaleString()}
+                                </p>
+                              )}
+                              <p className={`text-sm ${isAdmin ? "text-[#4a6580]" : "text-[#a8c0d6]"}`}>{entry.message}</p>
+                            </div>
+                            <p className="text-xs text-[#4a6580] mt-1 px-1">
+                              {isAdmin ? "Admin" : "User"} · {new Date(entry.timestamp).toLocaleString()}
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Admin Response Actions */}
+                  {(selectedOffer.status === "pending" || selectedOffer.status === "counter_sent") && (
+                    <div className="space-y-3">
+                      <p className="font-semibold text-primary text-sm">Respond to Offer</p>
+                      <div className="flex gap-2 flex-wrap">
+                        <Button
+                          size="sm"
+                          className="bg-green-600 hover:bg-green-700 text-white gap-1"
+                          onClick={() => {
+                            adminRespondToOffer(selectedOffer.id, "accept", undefined, "Offer accepted by admin.");
+                            toast.success("Offer accepted!");
+                            loadData();
+                            setSelectedOffer(null);
+                          }}
+                        >
+                          <CheckCircle className="w-4 h-4" /> Accept
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="border-red-300 text-red-600 hover:bg-red-50 gap-1"
+                          onClick={() => {
+                            adminRespondToOffer(selectedOffer.id, "reject", undefined, "Offer rejected by admin.");
+                            toast.success("Offer rejected.");
+                            loadData();
+                            setSelectedOffer(null);
+                          }}
+                        >
+                          <XCircle className="w-4 h-4" /> Reject
+                        </Button>
+                      </div>
+                      <div className="flex gap-2 items-end">
+                        <div className="flex-1">
+                          <Label className="text-xs">Revised Amount (₹)</Label>
+                          <div className="relative mt-1">
+                            <IndianRupee className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                            <Input className="pl-9" type="number" min={1} value={reviseAmount} onChange={e => setReviseAmount(e.target.value)} placeholder="New amount" />
+                          </div>
+                        </div>
+                        <div className="flex-1">
+                          <Label className="text-xs">Message</Label>
+                          <Input className="mt-1" value={reviseMessage} onChange={e => setReviseMessage(e.target.value)} placeholder="Revision note..." />
+                        </div>
+                        <Button
+                          size="sm"
+                          className="bg-blue-600 hover:bg-blue-700 text-white gap-1"
+                          onClick={() => {
+                            if (!reviseAmount) { toast.error("Enter revised amount"); return; }
+                            adminRespondToOffer(selectedOffer.id, "revise", Number(reviseAmount), reviseMessage || "Revised offer sent.");
+                            toast.success("Revised offer sent!");
+                            setReviseAmount("");
+                            setReviseMessage("");
+                            loadData();
+                            setSelectedOffer(null);
+                          }}
+                        >
+                          <ArrowLeftRight className="w-4 h-4" /> Revise
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Offers Table */}
+            {offers.length === 0 ? (
+              <Card><CardContent className="p-8 text-center text-muted-foreground">No offers created yet. Use the button above to create one.</CardContent></Card>
+            ) : (
+              <Card>
+                <CardContent className="p-0 overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="bg-[#e8f0f7] text-primary">
+                      <tr>
+                        <th className="text-left px-4 py-3 font-semibold">User</th>
+                        <th className="text-left px-4 py-3 font-semibold">Title</th>
+                        <th className="text-right px-4 py-3 font-semibold">Original (₹)</th>
+                        <th className="text-right px-4 py-3 font-semibold">Counter (₹)</th>
+                        <th className="text-center px-4 py-3 font-semibold">Status</th>
+                        <th className="text-left px-4 py-3 font-semibold">Date</th>
+                        <th className="text-center px-4 py-3 font-semibold">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[...offers].reverse().map((offer, i) => (
+                        <tr key={offer.id} className={`border-t border-border ${i % 2 === 0 ? "bg-white" : "bg-[#f5f9fc]"}`}>
+                          <td className="px-4 py-3">
+                            <p className="font-semibold text-primary">{offer.userName || "—"}</p>
+                            <p className="text-xs text-muted-foreground">{offer.userId}</p>
+                          </td>
+                          <td className="px-4 py-3 font-medium">{offer.title}</td>
+                          <td className="px-4 py-3 text-right font-semibold">₹{offer.originalAmount.toLocaleString()}</td>
+                          <td className="px-4 py-3 text-right text-blue-600 font-semibold">
+                            {offer.counterAmount ? `₹${offer.counterAmount.toLocaleString()}` : "—"}
+                          </td>
+                          <td className="px-4 py-3 text-center">
+                            <span className={`text-xs font-semibold px-2 py-1 rounded-full border ${
+                              offer.status === "pending" ? "bg-yellow-100 text-yellow-700 border-yellow-200" :
+                              offer.status === "counter_sent" ? "bg-blue-100 text-blue-700 border-blue-200" :
+                              offer.status === "accepted" ? "bg-green-100 text-green-700 border-green-200" :
+                              "bg-red-100 text-red-700 border-red-200"
+                            }`}>{offer.status.replace("_", " ")}</span>
+                          </td>
+                          <td className="px-4 py-3 text-xs text-muted-foreground">{new Date(offer.createdAt).toLocaleDateString()}</td>
+                          <td className="px-4 py-3 text-center">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => { setSelectedOffer(offer); setShowNewOffer(false); }}
+                              className="text-xs gap-1"
+                            >
+                              <ArrowLeftRight className="w-3 h-3" /> View
+                            </Button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </CardContent>
+              </Card>
+            )}
           </div>
         )}
       </div>

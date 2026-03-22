@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
@@ -9,6 +10,12 @@ import { CheckCircle } from "lucide-react";
 import { toast } from "sonner";
 
 export function QuotePage() {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const auth = localStorage.getItem("userAuth");
+    if (!auth) navigate("/login");
+  }, [navigate]);
   const [formData, setFormData] = useState({
     pickupLocation: "",
     deliveryLocation: "",

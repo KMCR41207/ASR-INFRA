@@ -117,7 +117,7 @@ export function HomePage() {
             Fast, secure, and affordable trucking, sand & steel supply solutions
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/quote">
+            <Link to="/login">
               <Button size="lg" className="bg-accent hover:bg-accent/90 text-white px-8">
                 Request Service
               </Button>

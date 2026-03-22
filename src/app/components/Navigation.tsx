@@ -58,7 +58,7 @@ export function Navigation() {
                 {link.label}
               </Link>
             ))}
-            <Link to="/quote">
+            <Link to="/login">
               <Button className="bg-accent hover:bg-accent/90 text-white">
                 Request Quote
               </Button>
@@ -88,7 +88,7 @@ export function Navigation() {
                 {link.label}
               </Link>
             ))}
-            <Link to="/quote" className="block pt-2">
+            <Link to="/login" className="block pt-2">
               <Button className="w-full bg-accent hover:bg-accent/90 text-white">
                 Request Quote
               </Button>
