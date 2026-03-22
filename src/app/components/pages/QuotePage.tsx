@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
@@ -11,11 +11,18 @@ import { toast } from "sonner";
 
 export function QuotePage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   useEffect(() => {
     const auth = localStorage.getItem("userAuth");
     if (!auth) navigate("/login");
-  }, [navigate]);
+    
+    // Pre-select service type from URL parameter
+    const serviceParam = searchParams.get("service");
+    if (serviceParam) {
+      setFormData(prev => ({ ...prev, serviceType: serviceParam }));
+    }
+  }, [navigate, searchParams]);
   const [formData, setFormData] = useState({
     pickupLocation: "",
     deliveryLocation: "",

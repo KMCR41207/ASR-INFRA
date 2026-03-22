@@ -7,6 +7,7 @@ export function ServicesPage() {
     {
       icon: <Truck className="w-16 h-16 text-accent" />,
       title: "Goods Transportation",
+      serviceType: "goods-carrier",
       description:
         "Our comprehensive goods transportation service ensures your cargo reaches its destination safely and on time. We handle everything from small packages to large freight with the utmost care and professionalism.",
       features: [
@@ -21,6 +22,7 @@ export function ServicesPage() {
     {
       icon: <TruckIcon className="w-16 h-16 text-accent" />,
       title: "Trucking Services",
+      serviceType: "transportation",
       description:
         "Professional trucking services with a modern fleet of vehicles equipped to handle diverse cargo requirements. Our experienced drivers and logistics team ensure smooth operations from pickup to delivery.",
       features: [
@@ -35,6 +37,7 @@ export function ServicesPage() {
     {
       icon: <Mountain className="w-16 h-16 text-accent" />,
       title: "Sand Supply",
+      serviceType: "sand-supply",
       description:
         "High-quality sand supply for construction projects of all scales. We source premium materials and deliver them directly to your site, ensuring your project stays on schedule and within budget.",
       features: [
@@ -49,6 +52,7 @@ export function ServicesPage() {
     {
       icon: <Factory className="w-16 h-16 text-accent" />,
       title: "Steel Supply",
+      serviceType: "steel-supply",
       description:
         "Comprehensive steel supply solutions for construction and industrial needs. We provide certified steel materials from trusted manufacturers, delivered with precision and care to your construction site.",
       features: [
@@ -105,7 +109,7 @@ export function ServicesPage() {
                     </li>
                   ))}
                 </ul>
-                <Link to="/quote">
+                <Link to={`/quote?service=${service.serviceType}`}>
                   <Button className="bg-accent hover:bg-accent/90 text-white">
                     Get a Quote
                   </Button>
