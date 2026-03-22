@@ -31,7 +31,7 @@
   text-decoration: none;
   white-space: nowrap;
   font-weight: 600;
-  font-size: 4vh;
+  font-size: 2.5vh;
 }
 .menu__item-link:hover { color: inherit; }
 .menu__item-link:focus:not(:focus-visible) { color: inherit; }
@@ -67,16 +67,16 @@
   white-space: nowrap;
   text-transform: uppercase;
   font-weight: 400;
-  font-size: 4vh;
+  font-size: 2.5vh;
   line-height: 1;
   padding: 0 1vw;
 }
 .marquee__img {
-  width: 200px;
-  height: 7vh;
-  margin: 2em 2vw;
-  padding: 1em 0;
-  border-radius: 50px;
+  width: 150px;
+  height: 5vh;
+  margin: 1.5em 1.5vw;
+  padding: 0.8em 0;
+  border-radius: 40px;
   background-size: cover;
   background-position: 50% 50%;
 }

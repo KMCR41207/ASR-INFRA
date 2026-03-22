@@ -141,7 +141,7 @@ export function HomePage() {
             </p>
           </div>
         </div>
-        <div style={{ height: '500px', position: 'relative' }}>
+        <div style={{ height: '350px', position: 'relative' }}>
           <FlowingMenu
             items={services}
             speed={15}
