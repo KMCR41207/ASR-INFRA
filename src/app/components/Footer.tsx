@@ -42,7 +42,7 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link to="/quote" className="text-[#a8c0d6] hover:text-accent transition-colors text-sm">
+                <Link to="/login" className="text-[#a8c0d6] hover:text-accent transition-colors text-sm">
                   Get Quote
                 </Link>
               </li>

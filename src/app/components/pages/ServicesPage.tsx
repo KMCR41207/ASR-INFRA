@@ -109,7 +109,7 @@ export function ServicesPage() {
                     </li>
                   ))}
                 </ul>
-                <Link to={`/quote?service=${service.serviceType}`}>
+                <Link to={`/login?redirect=/quote&service=${service.serviceType}`}>
                   <Button className="bg-accent hover:bg-accent/90 text-white">
                     Get a Quote
                   </Button>

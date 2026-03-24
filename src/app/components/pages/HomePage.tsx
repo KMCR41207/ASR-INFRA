@@ -243,7 +243,7 @@ export function HomePage() {
           <p className="text-xl mb-8 text-[#c8d9e8]">
             Contact us today for a free quote and experience reliable service
           </p>
-          <Link to="/quote">
+          <Link to="/login">
             <Button size="lg" className="bg-accent hover:bg-accent/90 text-white px-8">
               Request a Quote Now
             </Button>

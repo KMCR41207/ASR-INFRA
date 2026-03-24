@@ -110,12 +110,53 @@ export function AdminDashboardPage() {
   };
 
   const saveOffer = (id: number) => {
+    const request = quoteRequests.find(r => r.id === id);
+    if (!request) return;
+    
+    // Save the offer to localStorage
     const updated = quoteRequests.map(r => r.id === id ? { ...r, offer: offerText } : r);
     setQuoteRequests(updated);
     localStorage.setItem("quoteRequests", JSON.stringify(updated));
     setEditingOffer(null);
     setOfferText("");
-    toast.success("Offer saved!");
+    
+    // Extract phone number (remove any non-digit characters)
+    const phoneNumber = request.phone.replace(/\D/g, '');
+    
+    // Create WhatsApp message with professional template
+    const message = `🏗️ ASR INFRA – Offer Details
+
+Hello 👋
+
+Thank you for choosing ASR Infra. We truly appreciate the opportunity to serve you and are glad to assist with your requirements. Our team is committed to providing reliable, professional, and high-quality infrastructure services.
+
+We look forward to building a strong and successful working relationship with you. 🤝
+
+━━━━━━━━━━━━━━━━━━━
+👤 Customer Details
+Name: ${request.name}
+━━━━━━━━━━━━━━━━━━━
+🚚 Load Details
+Pickup Location: ${request.pickupLocation || 'As discussed'}
+Drop Location: ${request.deliveryLocation || 'As discussed'}
+Material Type: ${request.serviceType.replace(/-/g, ' ').toUpperCase()}${request.steelType ? ` - ${request.steelType}` : ''}${request.sandType ? ` - ${request.sandType}` : ''}${request.materialType ? ` - ${request.materialType}` : ''}
+Weight / Quantity: ${request.quantity ? `${request.quantity} ${request.unit}` : 'As per requirement'}
+Vehicle Required: ${request.vehicleType || 'As per load requirement'}
+━━━━━━━━━━━━━━━━━━━
+💰 Our Offer
+Offered Price: ${offerText}
+Additional Notes: ${request.loadDetails || 'Please contact us for any clarifications'}
+━━━━━━━━━━━━━━━━━━━
+
+If you would like to proceed or discuss the offer further, please feel free to reply to this message. We are happy to assist you.
+
+Thank you once again for trusting ASR Infra. We look forward to working with you. 🙏`;
+    
+    // Open WhatsApp
+    const whatsappUrl = `https://wa.me/91${phoneNumber}?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
+    
+    toast.success("Opening WhatsApp to send offer!");
   };
 
   const deleteQuote = (id: number) => {
@@ -271,7 +312,7 @@ export function AdminDashboardPage() {
                     {editingOffer === r.id ? (
                       <div className="flex gap-2">
                         <Input value={offerText} onChange={(e) => setOfferText(e.target.value)} placeholder="e.g. ₹15,000 for 10 tons delivered in 3 days" className="flex-1" />
-                        <Button size="sm" className="bg-accent text-white" onClick={() => saveOffer(r.id)}>Save</Button>
+                        <Button size="sm" className="bg-accent text-white" onClick={() => saveOffer(r.id)}>Send Offer</Button>
                         <Button size="sm" variant="outline" onClick={() => setEditingOffer(null)}>Cancel</Button>
                       </div>
                     ) : (

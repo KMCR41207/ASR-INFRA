@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
@@ -12,6 +12,7 @@ type Method = "phone" | "email";
 
 export function UserAuthPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [step, setStep] = useState<Step>("input");
   const [method, setMethod] = useState<Method>("phone");
   const [contact, setContact] = useState("");
@@ -69,8 +70,18 @@ export function UserAuthPage() {
     if (entered === generatedOtp) {
       // Save user session
       localStorage.setItem("userAuth", JSON.stringify({ contact, method, verified: true }));
-      toast.success("Verified! Redirecting to dashboard...");
-      setTimeout(() => navigate("/dashboard"), 800);
+      toast.success("Verified! Redirecting...");
+      
+      // Check for redirect parameters
+      const redirectPath = searchParams.get("redirect");
+      const serviceType = searchParams.get("service");
+      
+      let destination = "/dashboard";
+      if (redirectPath) {
+        destination = serviceType ? `${redirectPath}?service=${serviceType}` : redirectPath;
+      }
+      
+      setTimeout(() => navigate(destination), 800);
     } else {
       toast.error("Invalid OTP. Please try again.");
       setOtp(["", "", "", "", "", ""]);
