@@ -5,6 +5,7 @@ import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
 import { Label } from "../ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
+import { AnimatedSelect } from "../ui/AnimatedSelect";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { CheckCircle } from "lucide-react";
 import { toast } from "sonner";
@@ -117,25 +118,24 @@ export function QuotePage() {
                     {/* Service Type */}
                     <div>
                       <Label htmlFor="serviceType">Service Type *</Label>
-                      <Select
-                        value={formData.serviceType}
-                        onValueChange={(value) => setFormData({ ...formData, serviceType: value })}
-                        required
-                      >
-                        <SelectTrigger className="mt-2">
-                          <SelectValue placeholder="Select service type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="transportation">Transportation</SelectItem>
-                          <SelectItem value="goods-carrier">Goods Carrier</SelectItem>
-                          <SelectItem value="raw-material-import">Raw Material Import</SelectItem>
-                          <SelectItem value="sand-supply">Sand Supply</SelectItem>
-                          <SelectItem value="steel-supply">Steel Supply</SelectItem>
-                          <SelectItem value="construction-material">Construction Material</SelectItem>
-                          <SelectItem value="heavy-equipment">Heavy Equipment Transport</SelectItem>
-                          <SelectItem value="other">Other</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <div className="mt-2">
+                        <AnimatedSelect
+                          value={formData.serviceType}
+                          onChange={(value) => setFormData({ ...formData, serviceType: value })}
+                          options={[
+                            { value: "transportation", label: "Transportation" },
+                            { value: "goods-carrier", label: "Goods Carrier" },
+                            { value: "raw-material-import", label: "Raw Material Import" },
+                            { value: "sand-supply", label: "Sand Supply" },
+                            { value: "steel-supply", label: "Steel Supply" },
+                            { value: "construction-material", label: "Construction Material" },
+                            { value: "heavy-equipment", label: "Heavy Equipment Transport" },
+                            { value: "other", label: "Other" },
+                          ]}
+                          placeholder="Select service type"
+                          required
+                        />
+                      </div>
                     </div>
 
                     {/* Dynamic Fields for Steel Supply */}
