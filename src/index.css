@@ -1,0 +1,56 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 210 40% 15%;
+    --card: 0 0% 100%;
+    --card-foreground: 210 40% 15%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 210 40% 15%;
+    /* Primary: #0F2A44 (deep navy blue) */
+    --primary: 210 66% 17%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 30% 92%;
+    --secondary-foreground: 210 66% 17%;
+    --muted: 210 20% 94%;
+    --muted-foreground: 210 25% 45%;
+    /* Accent: #E8500A (vibrant orange) */
+    --accent: 19 92% 48%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 210 20% 85%;
+    --input: 210 20% 85%;
+    --ring: 19 92% 48%;
+    --radius: 0.5rem;
+    --chart-1: 19 92% 48%;
+    --chart-2: 210 66% 17%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+    --sidebar-background: 210 66% 17%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 19 92% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 210 50% 25%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 210 50% 25%;
+    --sidebar-ring: 19 92% 48%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Inter', sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-weight: 700;
+  }
+}
