@@ -9,6 +9,7 @@ import { AnimatedSelect } from "../ui/AnimatedSelect";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { CheckCircle, MessageCircle, LayoutDashboard, X } from "lucide-react";
 import { toast } from "sonner";
+import { saveQuoteRequest } from "../../../lib/db";
 
 // AI-generated WhatsApp message from form data
 function generateWhatsAppMessage(data: Record<string, string>): string {
@@ -87,34 +88,55 @@ export function QuotePage() {
     setShowChoiceModal(true);
   };
 
-  const submitToWebsite = () => {
+  const submitToWebsite = async () => {
     if (!pendingData) return;
-    const existing = JSON.parse(localStorage.getItem("quoteRequests") || "[]");
-    const newRequest = {
-      id: Date.now(),
-      ...pendingData,
-      createdAt: new Date().toISOString(),
-      status: "new",
-    };
-    localStorage.setItem("quoteRequests", JSON.stringify([...existing, newRequest]));
+    await saveQuoteRequest({
+      name: pendingData.name,
+      phone: pendingData.phone,
+      email: pendingData.email,
+      service_type: pendingData.serviceType,
+      pickup_location: pendingData.pickupLocation,
+      delivery_location: pendingData.deliveryLocation,
+      load_details: pendingData.loadDetails,
+      preferred_date: pendingData.preferredDate,
+      quantity: pendingData.quantity,
+      unit: pendingData.unit,
+      steel_type: pendingData.steelType,
+      steel_grade: pendingData.steelGrade,
+      sand_type: pendingData.sandType,
+      sand_grade: pendingData.sandGrade,
+      material_type: pendingData.materialType,
+      vehicle_type: pendingData.vehicleType,
+      status: 'new',
+      sent_via_whatsapp: false,
+    });
     setShowChoiceModal(false);
     toast.success("Quote submitted! We'll contact you shortly.");
     resetForm();
   };
 
-  const submitViaWhatsApp = () => {
+  const submitViaWhatsApp = async () => {
     if (!pendingData) return;
-    // Also save to admin panel
-    const existing = JSON.parse(localStorage.getItem("quoteRequests") || "[]");
-    const newRequest = {
-      id: Date.now(),
-      ...pendingData,
-      createdAt: new Date().toISOString(),
-      status: "new",
-      sentViaWhatsApp: true,
-    };
-    localStorage.setItem("quoteRequests", JSON.stringify([...existing, newRequest]));
-    
+    await saveQuoteRequest({
+      name: pendingData.name,
+      phone: pendingData.phone,
+      email: pendingData.email,
+      service_type: pendingData.serviceType,
+      pickup_location: pendingData.pickupLocation,
+      delivery_location: pendingData.deliveryLocation,
+      load_details: pendingData.loadDetails,
+      preferred_date: pendingData.preferredDate,
+      quantity: pendingData.quantity,
+      unit: pendingData.unit,
+      steel_type: pendingData.steelType,
+      steel_grade: pendingData.steelGrade,
+      sand_type: pendingData.sandType,
+      sand_grade: pendingData.sandGrade,
+      material_type: pendingData.materialType,
+      vehicle_type: pendingData.vehicleType,
+      status: 'new',
+      sent_via_whatsapp: true,
+    });
     const message = generateWhatsAppMessage(pendingData);
     window.open(`https://wa.me/918142452633?text=${message}`, "_blank");
     setShowChoiceModal(false);

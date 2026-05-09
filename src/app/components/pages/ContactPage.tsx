@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Card, CardContent } from "../ui/card";
 import { Phone, Mail, MapPin, Clock } from "lucide-react";
 import { toast } from "sonner";
+import { saveContactRequest } from "../../../lib/db";
 
 export function ContactPage() {
   const [formData, setFormData] = useState({
@@ -17,27 +18,18 @@ export function ContactPage() {
     message: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    // Save to localStorage so admin can see it
-    const existing = JSON.parse(localStorage.getItem("contactRequests") || "[]");
-    const newRequest = {
-      id: Date.now(),
-      ...formData,
-      createdAt: new Date().toISOString(),
+    await saveContactRequest({
+      name: formData.name,
+      phone: formData.phone,
+      email: formData.email,
+      service_type: formData.serviceType,
+      message: formData.message,
       status: "new",
-    };
-    localStorage.setItem("contactRequests", JSON.stringify([...existing, newRequest]));
-
-    toast.success("Message sent successfully! We'll get back to you soon.");
-    setFormData({
-      name: "",
-      phone: "",
-      email: "",
-      serviceType: "",
-      message: "",
     });
+    toast.success("Message sent successfully! We'll get back to you soon.");
+    setFormData({ name: "", phone: "", email: "", serviceType: "", message: "" });
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {

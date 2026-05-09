@@ -9,52 +9,21 @@ import { Label } from "../ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { LogOut, Mail, Phone, User, Calendar, MessageSquare, MapPin, Package, Trash2, Tag, Plus, IndianRupee, ArrowLeftRight, CheckCircle, XCircle, Send } from "lucide-react";
 import { toast } from "sonner";
-import { getOffers, createOffer, adminRespondToOffer, type Offer } from "../../lib/offerStore";
-
-interface QuoteRequest {
-  id: number;
-  name: string;
-  phone: string;
-  email: string;
-  serviceType: string;
-  pickupLocation: string;
-  deliveryLocation: string;
-  loadDetails: string;
-  preferredDate: string;
-  quantity: string;
-  unit: string;
-  steelType?: string;
-  steelGrade?: string;
-  sandType?: string;
-  sandGrade?: string;
-  materialType?: string;
-  vehicleType?: string;
-  createdAt: string;
-  status: "new" | "contacted" | "completed";
-  adminNote?: string;
-  offer?: string;
-}
-
-interface ContactRequest {
-  id: number;
-  name: string;
-  phone: string;
-  email: string;
-  serviceType: string;
-  message: string;
-  createdAt: string;
-  status: "new" | "contacted" | "completed";
-  adminNote?: string;
-}
+import {
+  getQuoteRequests, updateQuoteRequest, deleteQuoteRequest,
+  getContactRequests, updateContactRequest, deleteContactRequest,
+  getOffers, createOffer, updateOffer, addNegotiationEntry,
+} from "../../../lib/db";
+import type { QuoteRequest, ContactRequest, Offer as DBOffer } from "../../../lib/supabase";
 
 export function AdminDashboardPage() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<"quotes" | "contacts" | "offers">("quotes");
   const [quoteRequests, setQuoteRequests] = useState<QuoteRequest[]>([]);
   const [contactRequests, setContactRequests] = useState<ContactRequest[]>([]);
-  const [offers, setOffers] = useState<Offer[]>([]);
+  const [offers, setOffers] = useState<DBOffer[]>([]);
   const [showNewOffer, setShowNewOffer] = useState(false);
-  const [selectedOffer, setSelectedOffer] = useState<Offer | null>(null);
+  const [selectedOffer, setSelectedOffer] = useState<DBOffer | null>(null);
   const [newOffer, setNewOffer] = useState({ userId: "", userName: "", title: "", description: "", originalAmount: "", adminNotes: "", expiryDate: "" });
   const [reviseAmount, setReviseAmount] = useState("");
   const [reviseMessage, setReviseMessage] = useState("");
@@ -68,10 +37,15 @@ export function AdminDashboardPage() {
     loadData();
   }, [navigate]);
 
-  const loadData = () => {
-    setQuoteRequests(JSON.parse(localStorage.getItem("quoteRequests") || "[]"));
-    setContactRequests(JSON.parse(localStorage.getItem("contactRequests") || "[]"));
-    setOffers(getOffers());
+  const loadData = async () => {
+    const [quotes, contacts, offerList] = await Promise.all([
+      getQuoteRequests(),
+      getContactRequests(),
+      getOffers(),
+    ]);
+    setQuoteRequests(quotes);
+    setContactRequests(contacts);
+    setOffers(offerList);
   };
 
   const handleLogout = () => {
@@ -80,50 +54,41 @@ export function AdminDashboardPage() {
     navigate("/admin/login");
   };
 
-  const updateQuoteStatus = (id: number, status: QuoteRequest["status"]) => {
-    const updated = quoteRequests.map(r => r.id === id ? { ...r, status } : r);
-    setQuoteRequests(updated);
-    localStorage.setItem("quoteRequests", JSON.stringify(updated));
+  const updateQuoteStatus = async (id: number, status: QuoteRequest["status"]) => {
+    await updateQuoteRequest(id, { status });
+    setQuoteRequests(prev => prev.map(r => r.id === id ? { ...r, status } : r));
     toast.success("Status updated!");
   };
 
-  const updateContactStatus = (id: number, status: ContactRequest["status"]) => {
-    const updated = contactRequests.map(r => r.id === id ? { ...r, status } : r);
-    setContactRequests(updated);
-    localStorage.setItem("contactRequests", JSON.stringify(updated));
+  const updateContactStatus = async (id: number, status: ContactRequest["status"]) => {
+    await updateContactRequest(id, { status });
+    setContactRequests(prev => prev.map(r => r.id === id ? { ...r, status } : r));
     toast.success("Status updated!");
   };
 
-  const saveNote = (id: number, type: "quote" | "contact") => {
+  const saveNote = async (id: number, type: "quote" | "contact") => {
     if (type === "quote") {
-      const updated = quoteRequests.map(r => r.id === id ? { ...r, adminNote: noteText } : r);
-      setQuoteRequests(updated);
-      localStorage.setItem("quoteRequests", JSON.stringify(updated));
+      await updateQuoteRequest(id, { admin_note: noteText });
+      setQuoteRequests(prev => prev.map(r => r.id === id ? { ...r, admin_note: noteText } : r));
     } else {
-      const updated = contactRequests.map(r => r.id === id ? { ...r, adminNote: noteText } : r);
-      setContactRequests(updated);
-      localStorage.setItem("contactRequests", JSON.stringify(updated));
+      await updateContactRequest(id, { admin_note: noteText });
+      setContactRequests(prev => prev.map(r => r.id === id ? { ...r, admin_note: noteText } : r));
     }
     setEditingNote(null);
     setNoteText("");
     toast.success("Note saved!");
   };
 
-  const saveOffer = (id: number) => {
+  const saveOffer = async (id: number) => {
     const request = quoteRequests.find(r => r.id === id);
     if (!request) return;
     
-    // Save the offer to localStorage
-    const updated = quoteRequests.map(r => r.id === id ? { ...r, offer: offerText } : r);
-    setQuoteRequests(updated);
-    localStorage.setItem("quoteRequests", JSON.stringify(updated));
+    await updateQuoteRequest(id, { offer: offerText });
+    setQuoteRequests(prev => prev.map(r => r.id === id ? { ...r, offer: offerText } : r));
     setEditingOffer(null);
     setOfferText("");
     
-    // Extract phone number (remove any non-digit characters)
     const phoneNumber = request.phone.replace(/\D/g, '');
-    
-    // Create WhatsApp message with professional template
     const message = `🏗️ ASR INFRA – Offer Details
 
 Hello 👋
@@ -137,39 +102,35 @@ We look forward to building a strong and successful working relationship with yo
 Name: ${request.name}
 ━━━━━━━━━━━━━━━━━━━
 🚚 Load Details
-Pickup Location: ${request.pickupLocation || 'As discussed'}
-Drop Location: ${request.deliveryLocation || 'As discussed'}
-Material Type: ${request.serviceType.replace(/-/g, ' ').toUpperCase()}${request.steelType ? ` - ${request.steelType}` : ''}${request.sandType ? ` - ${request.sandType}` : ''}${request.materialType ? ` - ${request.materialType}` : ''}
+Pickup Location: ${request.pickup_location || 'As discussed'}
+Drop Location: ${request.delivery_location || 'As discussed'}
+Material Type: ${request.service_type.replace(/-/g, ' ').toUpperCase()}${request.steel_type ? ` - ${request.steel_type}` : ''}${request.sand_type ? ` - ${request.sand_type}` : ''}${request.material_type ? ` - ${request.material_type}` : ''}
 Weight / Quantity: ${request.quantity ? `${request.quantity} ${request.unit}` : 'As per requirement'}
-Vehicle Required: ${request.vehicleType || 'As per load requirement'}
+Vehicle Required: ${request.vehicle_type || 'As per load requirement'}
 ━━━━━━━━━━━━━━━━━━━
 💰 Our Offer
 Offered Price: ${offerText}
-Additional Notes: ${request.loadDetails || 'Please contact us for any clarifications'}
+Additional Notes: ${request.load_details || 'Please contact us for any clarifications'}
 ━━━━━━━━━━━━━━━━━━━
 
 If you would like to proceed or discuss the offer further, please feel free to reply to this message. We are happy to assist you.
 
 Thank you once again for trusting ASR Infra. We look forward to working with you. 🙏`;
     
-    // Open WhatsApp
     const whatsappUrl = `https://wa.me/91${phoneNumber}?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
-    
     toast.success("Opening WhatsApp to send offer!");
   };
 
-  const deleteQuote = (id: number) => {
-    const updated = quoteRequests.filter(r => r.id !== id);
-    setQuoteRequests(updated);
-    localStorage.setItem("quoteRequests", JSON.stringify(updated));
+  const deleteQuote = async (id: number) => {
+    await deleteQuoteRequest(id);
+    setQuoteRequests(prev => prev.filter(r => r.id !== id));
     toast.success("Deleted!");
   };
 
-  const deleteContact = (id: number) => {
-    const updated = contactRequests.filter(r => r.id !== id);
-    setContactRequests(updated);
-    localStorage.setItem("contactRequests", JSON.stringify(updated));
+  const deleteContact = async (id: number) => {
+    await deleteContactRequest(id);
+    setContactRequests(prev => prev.filter(r => r.id !== id));
     toast.success("Deleted!");
   };
 
@@ -262,14 +223,14 @@ Thank you once again for trusting ASR Infra. We look forward to working with you
                     <div className="flex gap-2 items-center">
                       <select
                         value={r.status}
-                        onChange={(e) => updateQuoteStatus(r.id, e.target.value as any)}
+                        onChange={(e) => updateQuoteStatus(r.id!, e.target.value as QuoteRequest['status'])}
                         className="px-3 py-1 border rounded text-sm"
                       >
                         <option value="new">New</option>
                         <option value="contacted">Contacted</option>
                         <option value="completed">Completed</option>
                       </select>
-                      <Button onClick={() => deleteQuote(r.id)} variant="destructive" size="sm">
+                      <Button onClick={() => deleteQuote(r.id!)} variant="destructive" size="sm">
                         <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
@@ -282,22 +243,22 @@ Thank you once again for trusting ASR Infra. We look forward to working with you
                       <p className="font-semibold text-primary mb-2">Contact Info</p>
                       <div className="flex items-center gap-2 text-sm"><Phone className="w-4 h-4 text-accent" />{r.phone}</div>
                       <div className="flex items-center gap-2 text-sm"><Mail className="w-4 h-4 text-accent" />{r.email}</div>
-                      <div className="flex items-center gap-2 text-sm"><Calendar className="w-4 h-4 text-accent" />{formatDate(r.createdAt)}</div>
-                      {r.preferredDate && <div className="flex items-center gap-2 text-sm"><Calendar className="w-4 h-4 text-accent" />Preferred: {r.preferredDate}</div>}
+                      <div className="flex items-center gap-2 text-sm"><Calendar className="w-4 h-4 text-accent" />{formatDate(r.created_at ?? "")}</div>
+                      {r.preferred_date && <div className="flex items-center gap-2 text-sm"><Calendar className="w-4 h-4 text-accent" />Preferred: {r.preferred_date}</div>}
                     </div>
 
                     {/* Service Info */}
                     <div className="space-y-2">
                       <p className="font-semibold text-primary mb-2">Service Info</p>
-                      <div className="flex items-center gap-2 text-sm"><Package className="w-4 h-4 text-accent" /><span className="capitalize">{r.serviceType?.replace(/-/g, " ")}</span></div>
-                      {r.pickupLocation && <div className="flex items-center gap-2 text-sm"><MapPin className="w-4 h-4 text-accent" />From: {r.pickupLocation}</div>}
-                      {r.deliveryLocation && <div className="flex items-center gap-2 text-sm"><MapPin className="w-4 h-4 text-accent" />To: {r.deliveryLocation}</div>}
+                      <div className="flex items-center gap-2 text-sm"><Package className="w-4 h-4 text-accent" /><span className="capitalize">{r.service_type?.replace(/-/g, " ")}</span></div>
+                      {r.pickup_location && <div className="flex items-center gap-2 text-sm"><MapPin className="w-4 h-4 text-accent" />From: {r.pickup_location}</div>}
+                      {r.delivery_location && <div className="flex items-center gap-2 text-sm"><MapPin className="w-4 h-4 text-accent" />To: {r.delivery_location}</div>}
                       {r.quantity && <div className="text-sm">Quantity: <strong>{r.quantity} {r.unit}</strong></div>}
-                      {r.steelType && <div className="text-sm">Steel Type: <strong>{r.steelType}</strong> | Grade: <strong>{r.steelGrade}</strong></div>}
-                      {r.sandType && <div className="text-sm">Sand Type: <strong>{r.sandType}</strong> | Grade: <strong>{r.sandGrade}</strong></div>}
-                      {r.materialType && <div className="text-sm">Material: <strong>{r.materialType}</strong></div>}
-                      {r.vehicleType && <div className="text-sm">Vehicle: <strong>{r.vehicleType}</strong></div>}
-                      {r.loadDetails && <div className="flex items-start gap-2 text-sm"><MessageSquare className="w-4 h-4 text-accent mt-0.5" />{r.loadDetails}</div>}
+                      {r.steel_type && <div className="text-sm">Steel Type: <strong>{r.steel_type}</strong> | Grade: <strong>{r.steel_grade}</strong></div>}
+                      {r.sand_type && <div className="text-sm">Sand Type: <strong>{r.sand_type}</strong> | Grade: <strong>{r.sand_grade}</strong></div>}
+                      {r.material_type && <div className="text-sm">Material: <strong>{r.material_type}</strong></div>}
+                      {r.vehicle_type && <div className="text-sm">Vehicle: <strong>{r.vehicle_type}</strong></div>}
+                      {r.load_details && <div className="flex items-start gap-2 text-sm"><MessageSquare className="w-4 h-4 text-accent mt-0.5" />{r.load_details}</div>}
                     </div>
                   </div>
 
@@ -305,14 +266,14 @@ Thank you once again for trusting ASR Infra. We look forward to working with you
                   <div className="mt-4 p-3 bg-orange-50 rounded-lg">
                     <div className="flex items-center justify-between mb-2">
                       <p className="font-semibold text-accent flex items-center gap-2"><Tag className="w-4 h-4" />Offer / Quote Price</p>
-                      <Button size="sm" variant="outline" onClick={() => { setEditingOffer(r.id); setOfferText(r.offer || ""); }}>
+                      <Button size="sm" variant="outline" onClick={() => { setEditingOffer(r.id!); setOfferText(r.offer || ""); }}>
                         {r.offer ? "Edit Offer" : "Add Offer"}
                       </Button>
                     </div>
                     {editingOffer === r.id ? (
                       <div className="flex gap-2">
                         <Input value={offerText} onChange={(e) => setOfferText(e.target.value)} placeholder="e.g. ₹15,000 for 10 tons delivered in 3 days" className="flex-1" />
-                        <Button size="sm" className="bg-accent text-white" onClick={() => saveOffer(r.id)}>Send Offer</Button>
+                        <Button size="sm" className="bg-accent text-white" onClick={() => saveOffer(r.id!)}>Send Offer</Button>
                         <Button size="sm" variant="outline" onClick={() => setEditingOffer(null)}>Cancel</Button>
                       </div>
                     ) : (
@@ -324,20 +285,20 @@ Thank you once again for trusting ASR Infra. We look forward to working with you
                   <div className="mt-3 p-3 bg-[#e8f0f7] rounded-lg">
                     <div className="flex items-center justify-between mb-2">
                       <p className="font-semibold text-sm">Admin Note</p>
-                      <Button size="sm" variant="outline" onClick={() => { setEditingNote(r.id); setNoteText(r.adminNote || ""); }}>
-                        {r.adminNote ? "Edit" : "Add Note"}
+                      <Button size="sm" variant="outline" onClick={() => { setEditingNote(r.id!); setNoteText(r.admin_note || ""); }}>
+                        {r.admin_note ? "Edit" : "Add Note"}
                       </Button>
                     </div>
                     {editingNote === r.id ? (
                       <div className="flex gap-2">
                         <Textarea value={noteText} onChange={(e) => setNoteText(e.target.value)} placeholder="Add internal note..." rows={2} className="flex-1" />
                         <div className="flex flex-col gap-1">
-                          <Button size="sm" className="bg-primary text-white" onClick={() => saveNote(r.id, "quote")}>Save</Button>
+                          <Button size="sm" className="bg-primary text-white" onClick={() => saveNote(r.id!, "quote")}>Save</Button>
                           <Button size="sm" variant="outline" onClick={() => setEditingNote(null)}>Cancel</Button>
                         </div>
                       </div>
                     ) : (
-                      <p className="text-sm text-muted-foreground">{r.adminNote || "No notes yet."}</p>
+                      <p className="text-sm text-muted-foreground">{r.admin_note || "No notes yet."}</p>
                     )}
                   </div>
                 </CardContent>
@@ -366,14 +327,14 @@ Thank you once again for trusting ASR Infra. We look forward to working with you
                     <div className="flex gap-2 items-center">
                       <select
                         value={r.status}
-                        onChange={(e) => updateContactStatus(r.id, e.target.value as any)}
+                        onChange={(e) => updateContactStatus(r.id!, e.target.value as QuoteRequest['status'])}
                         className="px-3 py-1 border rounded text-sm"
                       >
                         <option value="new">New</option>
                         <option value="contacted">Contacted</option>
                         <option value="completed">Completed</option>
                       </select>
-                      <Button onClick={() => deleteContact(r.id)} variant="destructive" size="sm">
+                      <Button onClick={() => deleteContact(r.id!)} variant="destructive" size="sm">
                         <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
@@ -384,8 +345,8 @@ Thank you once again for trusting ASR Infra. We look forward to working with you
                     <div className="space-y-2">
                       <div className="flex items-center gap-2 text-sm"><Phone className="w-4 h-4 text-accent" />{r.phone}</div>
                       <div className="flex items-center gap-2 text-sm"><Mail className="w-4 h-4 text-accent" />{r.email}</div>
-                      <div className="flex items-center gap-2 text-sm"><Calendar className="w-4 h-4 text-accent" />{formatDate(r.createdAt)}</div>
-                      <div className="flex items-center gap-2 text-sm"><Package className="w-4 h-4 text-accent" /><span className="capitalize">{r.serviceType}</span></div>
+                      <div className="flex items-center gap-2 text-sm"><Calendar className="w-4 h-4 text-accent" />{formatDate(r.created_at ?? "")}</div>
+                      <div className="flex items-center gap-2 text-sm"><Package className="w-4 h-4 text-accent" /><span className="capitalize">{r.service_type}</span></div>
                     </div>
                     <div>
                       <div className="flex items-start gap-2 text-sm"><MessageSquare className="w-4 h-4 text-accent mt-0.5 flex-shrink-0" />{r.message}</div>
@@ -396,20 +357,20 @@ Thank you once again for trusting ASR Infra. We look forward to working with you
                   <div className="mt-3 p-3 bg-[#e8f0f7] rounded-lg">
                     <div className="flex items-center justify-between mb-2">
                       <p className="font-semibold text-sm">Admin Note</p>
-                      <Button size="sm" variant="outline" onClick={() => { setEditingNote(r.id); setNoteText(r.adminNote || ""); }}>
-                        {r.adminNote ? "Edit" : "Add Note"}
+                      <Button size="sm" variant="outline" onClick={() => { setEditingNote(r.id!); setNoteText(r.admin_note || ""); }}>
+                        {r.admin_note ? "Edit" : "Add Note"}
                       </Button>
                     </div>
                     {editingNote === r.id ? (
                       <div className="flex gap-2">
                         <Textarea value={noteText} onChange={(e) => setNoteText(e.target.value)} placeholder="Add internal note..." rows={2} className="flex-1" />
                         <div className="flex flex-col gap-1">
-                          <Button size="sm" className="bg-primary text-white" onClick={() => saveNote(r.id, "contact")}>Save</Button>
+                          <Button size="sm" className="bg-primary text-white" onClick={() => saveNote(r.id!, "contact")}>Save</Button>
                           <Button size="sm" variant="outline" onClick={() => setEditingNote(null)}>Cancel</Button>
                         </div>
                       </div>
                     ) : (
-                      <p className="text-sm text-muted-foreground">{r.adminNote || "No notes yet."}</p>
+                      <p className="text-sm text-muted-foreground">{r.admin_note || "No notes yet."}</p>
                     )}
                   </div>
                 </CardContent>
@@ -446,18 +407,21 @@ Thank you once again for trusting ASR Infra. We look forward to working with you
                         return;
                       }
                       createOffer({
-                        userId: newOffer.userId,
-                        userName: newOffer.userName,
+                        user_id: newOffer.userId,
+                        user_name: newOffer.userName,
                         title: newOffer.title,
                         description: newOffer.description,
-                        originalAmount: Number(newOffer.originalAmount),
-                        adminNotes: newOffer.adminNotes,
-                        expiryDate: newOffer.expiryDate || undefined,
+                        original_amount: Number(newOffer.originalAmount),
+                        current_amount: Number(newOffer.originalAmount),
+                        admin_notes: newOffer.adminNotes,
+                        expiry_date: newOffer.expiryDate || undefined,
+                        status: 'pending',
+                      }).then(() => {
+                        toast.success("Offer created and sent to user!");
+                        setNewOffer({ userId: "", userName: "", title: "", description: "", originalAmount: "", adminNotes: "", expiryDate: "" });
+                        setShowNewOffer(false);
+                        loadData();
                       });
-                      toast.success("Offer created and sent to user!");
-                      setNewOffer({ userId: "", userName: "", title: "", description: "", originalAmount: "", adminNotes: "", expiryDate: "" });
-                      setShowNewOffer(false);
-                      loadData();
                     }}
                     className="grid grid-cols-1 md:grid-cols-2 gap-4"
                   >
@@ -509,7 +473,7 @@ Thank you once again for trusting ASR Infra. We look forward to working with you
                   <div className="flex items-center justify-between flex-wrap gap-2">
                     <div>
                       <p className="font-bold text-primary text-lg">{selectedOffer.title}</p>
-                      <p className="text-sm text-muted-foreground">{selectedOffer.userName || selectedOffer.userId}</p>
+                      <p className="text-sm text-muted-foreground">{selectedOffer.user_name || selectedOffer.user_id}</p>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className={`text-xs font-semibold px-3 py-1 rounded-full border ${
@@ -525,7 +489,7 @@ Thank you once again for trusting ASR Infra. We look forward to working with you
                 <CardContent className="space-y-4">
                   {/* Negotiation History */}
                   <div className="bg-[#e8f0f7] rounded-xl p-4 space-y-3 max-h-72 overflow-y-auto">
-                    {selectedOffer.history.map((entry, i) => {
+                    {selectedOffer && ([] as any[]).map((entry: any, i: number) => {
                       const isAdmin = entry.author === "admin";
                       return (
                         <div key={i} className={`flex gap-3 ${isAdmin ? "" : "flex-row-reverse"}`}>
@@ -559,7 +523,7 @@ Thank you once again for trusting ASR Infra. We look forward to working with you
                           size="sm"
                           className="bg-green-600 hover:bg-green-700 text-white gap-1"
                           onClick={() => {
-                            adminRespondToOffer(selectedOffer.id, "accept", undefined, "Offer accepted by admin.");
+                            updateOffer(selectedOffer.id!, { status: 'accepted' }).then(() => addNegotiationEntry({ offer_id: selectedOffer.id!, type: 'admin_response', amount: selectedOffer.current_amount, message: 'Offer accepted by admin.', author: 'admin' }));
                             toast.success("Offer accepted!");
                             loadData();
                             setSelectedOffer(null);
@@ -572,7 +536,7 @@ Thank you once again for trusting ASR Infra. We look forward to working with you
                           variant="outline"
                           className="border-red-300 text-red-600 hover:bg-red-50 gap-1"
                           onClick={() => {
-                            adminRespondToOffer(selectedOffer.id, "reject", undefined, "Offer rejected by admin.");
+                            updateOffer(selectedOffer.id!, { status: 'rejected' }).then(() => addNegotiationEntry({ offer_id: selectedOffer.id!, type: 'admin_response', amount: selectedOffer.current_amount, message: 'Offer rejected by admin.', author: 'admin' }));
                             toast.success("Offer rejected.");
                             loadData();
                             setSelectedOffer(null);
@@ -598,7 +562,7 @@ Thank you once again for trusting ASR Infra. We look forward to working with you
                           className="bg-blue-600 hover:bg-blue-700 text-white gap-1"
                           onClick={() => {
                             if (!reviseAmount) { toast.error("Enter revised amount"); return; }
-                            adminRespondToOffer(selectedOffer.id, "revise", Number(reviseAmount), reviseMessage || "Revised offer sent.");
+                            updateOffer(selectedOffer.id!, { current_amount: Number(reviseAmount), status: 'pending' }).then(() => addNegotiationEntry({ offer_id: selectedOffer.id!, type: 'admin_response', amount: Number(reviseAmount), message: reviseMessage || 'Revised offer sent.', author: 'admin' }));
                             toast.success("Revised offer sent!");
                             setReviseAmount("");
                             setReviseMessage("");
@@ -637,13 +601,13 @@ Thank you once again for trusting ASR Infra. We look forward to working with you
                       {[...offers].reverse().map((offer, i) => (
                         <tr key={offer.id} className={`border-t border-border ${i % 2 === 0 ? "bg-white" : "bg-[#f5f9fc]"}`}>
                           <td className="px-4 py-3">
-                            <p className="font-semibold text-primary">{offer.userName || "—"}</p>
-                            <p className="text-xs text-muted-foreground">{offer.userId}</p>
+                            <p className="font-semibold text-primary">{offer.user_name || "—"}</p>
+                            <p className="text-xs text-muted-foreground">{offer.user_id}</p>
                           </td>
                           <td className="px-4 py-3 font-medium">{offer.title}</td>
-                          <td className="px-4 py-3 text-right font-semibold">₹{offer.originalAmount.toLocaleString()}</td>
+                          <td className="px-4 py-3 text-right font-semibold">₹{offer.original_amount.toLocaleString()}</td>
                           <td className="px-4 py-3 text-right text-blue-600 font-semibold">
-                            {offer.counterAmount ? `₹${offer.counterAmount.toLocaleString()}` : "—"}
+                            {offer.counter_amount ? `₹${offer.counter_amount.toLocaleString()}` : "—"}
                           </td>
                           <td className="px-4 py-3 text-center">
                             <span className={`text-xs font-semibold px-2 py-1 rounded-full border ${
@@ -653,7 +617,7 @@ Thank you once again for trusting ASR Infra. We look forward to working with you
                               "bg-red-100 text-red-700 border-red-200"
                             }`}>{offer.status.replace("_", " ")}</span>
                           </td>
-                          <td className="px-4 py-3 text-xs text-muted-foreground">{new Date(offer.createdAt).toLocaleDateString()}</td>
+                          <td className="px-4 py-3 text-xs text-muted-foreground">{new Date(offer.created_at ?? "").toLocaleDateString()}</td>
                           <td className="px-4 py-3 text-center">
                             <Button
                               size="sm"
@@ -677,3 +641,7 @@ Thank you once again for trusting ASR Infra. We look forward to working with you
     </div>
   );
 }
+
+
+
+

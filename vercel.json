@@ -2,6 +2,10 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "framework": "vite",
+  "env": {
+    "VITE_SUPABASE_URL": "https://qdylukvzmbaqcrtcgixo.supabase.co",
+    "VITE_SUPABASE_PUBLISHABLE_KEY": "sb_publishable_fLoOkcMtesgVIXj7NvTLwg_nVCIeBsM"
+  },
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
   ]
