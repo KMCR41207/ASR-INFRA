@@ -303,7 +303,7 @@ function Footer() {
             <ul className="space-y-3 text-[#a8c0d6] text-sm">
               <li>
                 <span className="block font-medium text-white mb-0.5">Phone</span>
-                +91 98765 43210
+              +91 81424 52633
               </li>
               <li>
                 <span className="block font-medium text-white mb-0.5">Email</span>
