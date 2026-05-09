@@ -1,29 +1,35 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Card, CardContent, CardHeader } from "../ui/card";
-import { Lock } from "lucide-react";
+import { Lock, Shield } from "lucide-react";
 import { toast } from "sonner";
+
+// Admin credentials — only this account can access the admin panel
+const ADMIN_EMAIL = "admin@asrinfra.com";
+const ADMIN_PASSWORD = "admin123";
 
 export function AdminLoginPage() {
   const navigate = useNavigate();
-  const [credentials, setCredentials] = useState({
-    email: "",
-    password: "",
-  });
+  const [credentials, setCredentials] = useState({ email: "", password: "" });
+
+  // Auto-redirect if already logged in as admin
+  useEffect(() => {
+    if (localStorage.getItem("adminAuth")) {
+      navigate("/admin/dashboard", { replace: true });
+    }
+  }, [navigate]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Simple authentication (replace with real API call)
-    if (credentials.email === "admin@asrinfra.com" && credentials.password === "admin123") {
+    if (credentials.email === ADMIN_EMAIL && credentials.password === ADMIN_PASSWORD) {
       localStorage.setItem("adminAuth", "true");
-      toast.success("Login successful!");
-      navigate("/admin/dashboard");
+      toast.success("Welcome back, Admin!");
+      navigate("/admin/dashboard", { replace: true });
     } else {
-      toast.error("Invalid credentials!");
+      toast.error("Invalid credentials. Access denied.");
     }
   };
 
@@ -33,16 +39,18 @@ export function AdminLoginPage() {
         <CardHeader>
           <div className="text-center">
             <div className="flex justify-center mb-4">
-              <Lock className="w-12 h-12 text-accent" />
+              <div className="bg-primary/10 p-4 rounded-full">
+                <Shield className="w-10 h-10 text-accent" />
+              </div>
             </div>
-            <h1 className="text-3xl font-bold text-primary mb-2">Admin Login</h1>
-            <p className="text-muted-foreground">Access your dashboard</p>
+            <h1 className="text-3xl font-bold text-primary mb-2">Admin Access</h1>
+            <p className="text-muted-foreground text-sm">Restricted to authorized personnel only</p>
           </div>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">Admin Email</Label>
               <Input
                 id="email"
                 type="email"
@@ -65,8 +73,8 @@ export function AdminLoginPage() {
                 className="mt-2"
               />
             </div>
-            <Button type="submit" className="w-full bg-accent hover:bg-accent/90">
-              Login
+            <Button type="submit" className="w-full bg-accent hover:bg-accent/90 gap-2">
+              <Lock className="w-4 h-4" /> Login to Admin Panel
             </Button>
           </form>
         </CardContent>

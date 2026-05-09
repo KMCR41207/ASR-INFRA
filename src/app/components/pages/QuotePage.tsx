@@ -7,30 +7,67 @@ import { Label } from "../ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { AnimatedSelect } from "../ui/AnimatedSelect";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
-import { CheckCircle } from "lucide-react";
+import { CheckCircle, MessageCircle, LayoutDashboard, X } from "lucide-react";
 import { toast } from "sonner";
+
+// AI-generated WhatsApp message from form data
+function generateWhatsAppMessage(data: Record<string, string>): string {
+  const serviceLabel = data.serviceType.replace(/-/g, " ").toUpperCase();
+  let details = "";
+
+  if (data.steelType) details += `\n🔩 Steel Type: ${data.steelType} | Grade: ${data.steelGrade}`;
+  if (data.sandType) details += `\n🏖️ Sand Type: ${data.sandType} | Grade: ${data.sandGrade}`;
+  if (data.materialType) details += `\n📦 Material: ${data.materialType}`;
+  if (data.vehicleType) details += `\n🚛 Vehicle: ${data.vehicleType}`;
+  if (data.quantity) details += `\n⚖️ Quantity: ${data.quantity} ${data.unit}`;
+
+  return encodeURIComponent(
+`🏗️ *ASR INFRA — New Quote Request*
+
+Hello! I'd like to request a quote for the following:
+
+━━━━━━━━━━━━━━━━━━━
+👤 *Customer Details*
+Name: ${data.name}
+Phone: ${data.phone}
+Email: ${data.email}
+━━━━━━━━━━━━━━━━━━━
+🚚 *Service Details*
+Service: ${serviceLabel}${details}
+Pickup: ${data.pickupLocation}
+Delivery: ${data.deliveryLocation}
+Preferred Date: ${data.preferredDate}
+━━━━━━━━━━━━━━━━━━━
+📝 *Load Details*
+${data.loadDetails}
+━━━━━━━━━━━━━━━━━━━
+
+Please provide a quote at your earliest convenience. Thank you! 🙏`
+  );
+}
 
 export function QuotePage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const [showChoiceModal, setShowChoiceModal] = useState(false);
+  const [pendingData, setPendingData] = useState<Record<string, string> | null>(null);
 
   useEffect(() => {
     const auth = localStorage.getItem("userAuth");
     if (!auth) navigate("/login");
     
-    // Pre-select service type from URL parameter
     const serviceParam = searchParams.get("service");
     if (serviceParam) {
       setFormData(prev => ({ ...prev, serviceType: serviceParam }));
     }
   }, [navigate, searchParams]);
+
   const [formData, setFormData] = useState({
     pickupLocation: "",
     deliveryLocation: "",
     serviceType: "",
     loadDetails: "",
     preferredDate: "",
-    // Dynamic fields
     quantity: "",
     unit: "",
     steelType: "",
@@ -46,36 +83,53 @@ export function QuotePage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setPendingData({ ...formData });
+    setShowChoiceModal(true);
+  };
 
-    // Save to localStorage so admin can see it
+  const submitToWebsite = () => {
+    if (!pendingData) return;
     const existing = JSON.parse(localStorage.getItem("quoteRequests") || "[]");
     const newRequest = {
       id: Date.now(),
-      ...formData,
+      ...pendingData,
       createdAt: new Date().toISOString(),
       status: "new",
     };
     localStorage.setItem("quoteRequests", JSON.stringify([...existing, newRequest]));
+    setShowChoiceModal(false);
+    toast.success("Quote submitted! We'll contact you shortly.");
+    resetForm();
+  };
 
-    toast.success("Quote request submitted! We'll contact you shortly with pricing details.");
+  const submitViaWhatsApp = () => {
+    if (!pendingData) return;
+    // Also save to admin panel
+    const existing = JSON.parse(localStorage.getItem("quoteRequests") || "[]");
+    const newRequest = {
+      id: Date.now(),
+      ...pendingData,
+      createdAt: new Date().toISOString(),
+      status: "new",
+      sentViaWhatsApp: true,
+    };
+    localStorage.setItem("quoteRequests", JSON.stringify([...existing, newRequest]));
+    
+    const message = generateWhatsAppMessage(pendingData);
+    window.open(`https://wa.me/918142452633?text=${message}`, "_blank");
+    setShowChoiceModal(false);
+    toast.success("Opening WhatsApp with your quote details!");
+    resetForm();
+  };
+
+  const resetForm = () => {
     setFormData({
-      pickupLocation: "",
-      deliveryLocation: "",
-      serviceType: "",
-      loadDetails: "",
-      preferredDate: "",
-      quantity: "",
-      unit: "",
-      steelType: "",
-      steelGrade: "",
-      sandType: "",
-      sandGrade: "",
-      materialType: "",
-      vehicleType: "",
-      name: "",
-      phone: "",
-      email: "",
+      pickupLocation: "", deliveryLocation: "", serviceType: "",
+      loadDetails: "", preferredDate: "", quantity: "", unit: "",
+      steelType: "", steelGrade: "", sandType: "", sandGrade: "",
+      materialType: "", vehicleType: "", name: "", phone: "", email: "",
     });
+    setPendingData(null);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -93,6 +147,59 @@ export function QuotePage() {
 
   return (
     <div>
+      {/* Choice Modal */}
+      {showChoiceModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+            <div className="bg-primary px-6 py-5 flex items-center justify-between">
+              <div>
+                <h2 className="text-white font-bold text-xl">How to send your quote?</h2>
+                <p className="text-[#a8c0d6] text-sm mt-0.5">Choose your preferred method</p>
+              </div>
+              <button onClick={() => setShowChoiceModal(false)} className="text-white/70 hover:text-white">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-6 grid grid-cols-1 gap-4">
+              {/* Website option */}
+              <button
+                onClick={submitToWebsite}
+                className="flex items-start gap-4 p-5 rounded-xl border-2 border-border hover:border-primary hover:bg-primary/5 transition-all text-left group"
+              >
+                <div className="bg-primary/10 p-3 rounded-lg group-hover:bg-primary/20 transition-colors">
+                  <LayoutDashboard className="w-6 h-6 text-primary" />
+                </div>
+                <div>
+                  <p className="font-bold text-primary text-base">Submit via Website</p>
+                  <p className="text-sm text-muted-foreground mt-0.5">
+                    Your request goes directly into the admin control panel. We'll review and contact you.
+                  </p>
+                </div>
+              </button>
+
+              {/* WhatsApp option */}
+              <button
+                onClick={submitViaWhatsApp}
+                className="flex items-start gap-4 p-5 rounded-xl border-2 border-border hover:border-green-500 hover:bg-green-50 transition-all text-left group"
+              >
+                <div className="bg-green-100 p-3 rounded-lg group-hover:bg-green-200 transition-colors">
+                  <MessageCircle className="w-6 h-6 text-green-600" />
+                </div>
+                <div>
+                  <p className="font-bold text-green-700 text-base">Send via WhatsApp</p>
+                  <p className="text-sm text-muted-foreground mt-0.5">
+                    An AI-generated message with all your details will open in WhatsApp to send directly to admin.
+                  </p>
+                </div>
+              </button>
+            </div>
+            <div className="px-6 pb-5 text-center text-xs text-muted-foreground">
+              Both options also save your request to the admin panel
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Hero Section */}
       <section className="bg-primary text-white py-20 px-4">
         <div className="max-w-7xl mx-auto text-center">
