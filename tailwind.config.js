@@ -7,6 +7,11 @@ export default {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        heading: ['"Roboto Condensed"', '"Helvetica Neue"', 'Arial', 'sans-serif'],
+        body: ['Arial', 'Helvetica', 'sans-serif'],
+        stat: ['Oswald', '"Bebas Neue"', 'sans-serif'],
+      },
       borderRadius: {
         lg: 'var(--radius)',
         md: 'calc(var(--radius) - 2px)',

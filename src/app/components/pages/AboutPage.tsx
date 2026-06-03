@@ -124,7 +124,7 @@ export function AboutPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {stats.map((stat, index) => (
               <div key={index} className="text-center">
-                <div className="text-5xl font-bold text-accent mb-2">{stat.number}</div>
+                <div className="font-stat text-accent mb-2">{stat.number}</div>
                 <div className="text-muted-foreground text-lg">{stat.label}</div>
               </div>
             ))}
