@@ -6,6 +6,7 @@ import { Label } from "../ui/label";
 import { Card, CardContent, CardHeader } from "../ui/card";
 import { Phone, Mail, ArrowRight, ShieldCheck, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
+import { supabaseAuth } from "../../../lib/supabaseAuth";
 
 type Step = "input" | "otp";
 type Method = "phone" | "email";
@@ -17,13 +18,12 @@ export function UserAuthPage() {
   const [method, setMethod] = useState<Method>("phone");
   const [contact, setContact] = useState("");
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
-  const [generatedOtp, setGeneratedOtp] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const generateOtp = () => Math.floor(100000 + Math.random() * 900000).toString();
-
-  const handleSendOtp = (e: React.FormEvent) => {
+  // ── Send OTP ──────────────────────────────────────────────────────────────
+  const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (method === "phone" && !/^[6-9]\d{9}$/.test(contact)) {
       toast.error("Enter a valid 10-digit mobile number");
       return;
@@ -34,68 +34,127 @@ export function UserAuthPage() {
     }
 
     setLoading(true);
-    const code = generateOtp();
-    setGeneratedOtp(code);
-
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      if (method === "phone") {
+        const { error } = await supabaseAuth.auth.signInWithOtp({
+          phone: `+91${contact}`,
+        });
+        if (error) throw error;
+        toast.success("OTP sent to your mobile number");
+      } else {
+        const { error } = await supabaseAuth.auth.signInWithOtp({
+          email: contact,
+          options: { shouldCreateUser: true },
+        });
+        if (error) throw error;
+        toast.success("OTP sent to your email address");
+      }
       setStep("otp");
-      // Show OTP in toast since we have no real SMS/email service
-      toast.success(`OTP sent! (Demo: ${code})`, { duration: 10000 });
-    }, 1000);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Failed to send OTP";
+      toast.error(message);
+    } finally {
+      setLoading(false);
+    }
   };
 
+  // ── Verify OTP ────────────────────────────────────────────────────────────
+  const handleVerify = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const token = otp.join("");
+    if (token.length < 6) return;
+
+    setLoading(true);
+    try {
+      let error;
+      if (method === "phone") {
+        ({ error } = await supabaseAuth.auth.verifyOtp({
+          phone: `+91${contact}`,
+          token,
+          type: "sms",
+        }));
+      } else {
+        ({ error } = await supabaseAuth.auth.verifyOtp({
+          email: contact,
+          token,
+          type: "email",
+        }));
+      }
+
+      if (error) throw error;
+
+      // Save lightweight session info for the rest of the app
+      localStorage.setItem(
+        "userAuth",
+        JSON.stringify({ contact, method, verified: true })
+      );
+
+      toast.success("Verified! Redirecting...");
+
+      const redirectPath = searchParams.get("redirect");
+      const serviceType = searchParams.get("service");
+      let destination = "/dashboard";
+      if (redirectPath) {
+        destination = serviceType
+          ? `${redirectPath}?service=${serviceType}`
+          : redirectPath;
+      }
+
+      setTimeout(() => navigate(destination), 800);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Invalid OTP";
+      toast.error(message);
+      setOtp(["", "", "", "", "", ""]);
+      document.getElementById("otp-0")?.focus();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ── Resend OTP ────────────────────────────────────────────────────────────
+  const handleResend = async () => {
+    setLoading(true);
+    try {
+      if (method === "phone") {
+        const { error } = await supabaseAuth.auth.signInWithOtp({
+          phone: `+91${contact}`,
+        });
+        if (error) throw error;
+      } else {
+        const { error } = await supabaseAuth.auth.signInWithOtp({
+          email: contact,
+          options: { shouldCreateUser: true },
+        });
+        if (error) throw error;
+      }
+      setOtp(["", "", "", "", "", ""]);
+      toast.success("New OTP sent!");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Failed to resend OTP";
+      toast.error(message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ── OTP input helpers ─────────────────────────────────────────────────────
   const handleOtpChange = (index: number, value: string) => {
     if (!/^\d*$/.test(value)) return;
     const newOtp = [...otp];
     newOtp[index] = value.slice(-1);
     setOtp(newOtp);
-    // Auto focus next
     if (value && index < 5) {
-      const next = document.getElementById(`otp-${index + 1}`);
-      next?.focus();
+      document.getElementById(`otp-${index + 1}`)?.focus();
     }
   };
 
   const handleOtpKeyDown = (index: number, e: React.KeyboardEvent) => {
     if (e.key === "Backspace" && !otp[index] && index > 0) {
-      const prev = document.getElementById(`otp-${index - 1}`);
-      prev?.focus();
+      document.getElementById(`otp-${index - 1}`)?.focus();
     }
   };
 
-  const handleVerify = (e: React.FormEvent) => {
-    e.preventDefault();
-    const entered = otp.join("");
-    if (entered === generatedOtp) {
-      // Save user session
-      localStorage.setItem("userAuth", JSON.stringify({ contact, method, verified: true }));
-      toast.success("Verified! Redirecting...");
-      
-      // Check for redirect parameters
-      const redirectPath = searchParams.get("redirect");
-      const serviceType = searchParams.get("service");
-      
-      let destination = "/dashboard";
-      if (redirectPath) {
-        destination = serviceType ? `${redirectPath}?service=${serviceType}` : redirectPath;
-      }
-      
-      setTimeout(() => navigate(destination), 800);
-    } else {
-      toast.error("Invalid OTP. Please try again.");
-      setOtp(["", "", "", "", "", ""]);
-      document.getElementById("otp-0")?.focus();
-    }
-  };
-
-  const handleResend = () => {
-    const code = generateOtp();
-    setGeneratedOtp(code);
-    setOtp(["", "", "", "", "", ""]);
-    toast.success(`New OTP sent! (Demo: ${code})`, { duration: 10000 });
-  };
-
+  // ── UI ────────────────────────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-[#e8f0f7] flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
@@ -119,7 +178,7 @@ export function UserAuthPage() {
                 <p className="text-sm text-[#4a6580]">
                   {step === "input"
                     ? "We'll send a verification code to confirm your identity"
-                    : `Code sent to ${contact}`}
+                    : `Code sent to ${method === "phone" ? "+91 " : ""}${contact}`}
                 </p>
               </div>
             </div>
@@ -161,7 +220,9 @@ export function UserAuthPage() {
                   </Label>
                   <div className="relative mt-2">
                     {method === "phone" && (
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#4a6580] text-sm font-medium">+91</span>
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#4a6580] text-sm font-medium">
+                        +91
+                      </span>
                     )}
                     <Input
                       id="contact"
@@ -213,11 +274,13 @@ export function UserAuthPage() {
                 <Button
                   type="submit"
                   className="w-full bg-accent hover:bg-accent/90 text-white font-semibold py-3"
-                  disabled={otp.join("").length < 6}
+                  disabled={otp.join("").length < 6 || loading}
                 >
-                  <span className="flex items-center justify-center gap-2">
-                    <ShieldCheck className="w-4 h-4" /> Verify & Continue
-                  </span>
+                  {loading ? "Verifying..." : (
+                    <span className="flex items-center justify-center gap-2">
+                      <ShieldCheck className="w-4 h-4" /> Verify & Continue
+                    </span>
+                  )}
                 </Button>
 
                 <div className="flex items-center justify-between text-sm">
@@ -226,12 +289,13 @@ export function UserAuthPage() {
                     onClick={() => { setStep("input"); setOtp(["", "", "", "", "", ""]); }}
                     className="text-[#4a6580] hover:text-primary transition-colors"
                   >
-                    ← Change number
+                    ← Change {method === "phone" ? "number" : "email"}
                   </button>
                   <button
                     type="button"
                     onClick={handleResend}
-                    className="flex items-center gap-1 text-accent hover:text-accent/80 font-semibold transition-colors"
+                    disabled={loading}
+                    className="flex items-center gap-1 text-accent hover:text-accent/80 font-semibold transition-colors disabled:opacity-50"
                   >
                     <RefreshCw className="w-3 h-3" /> Resend OTP
                   </button>

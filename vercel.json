@@ -5,7 +5,9 @@
   "build": {
     "env": {
       "VITE_SUPABASE_URL": "https://qdylukvzmbaqcrtcgixo.supabase.co",
-      "VITE_SUPABASE_PUBLISHABLE_KEY": "sb_publishable_fLoOkcMtesgVIXj7NvTLwg_nVCIeBsM"
+      "VITE_SUPABASE_PUBLISHABLE_KEY": "sb_publishable_fLoOkcMtesgVIXj7NvTLwg_nVCIeBsM",
+      "VITE_AUTH_SUPABASE_URL": "https://hxlhcsdffixcypliiuc.supabase.co",
+      "VITE_AUTH_SUPABASE_KEY": "sb_publishable_FJa_fOrtsixejNTXpXFgaA_J6nLBpZz"
     }
   },
   "rewrites": [
