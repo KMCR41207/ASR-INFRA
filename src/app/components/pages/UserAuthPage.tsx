@@ -44,7 +44,10 @@ export function UserAuthPage() {
       } else {
         const { error } = await supabaseAuth.auth.signInWithOtp({
           email: contact,
-          options: { shouldCreateUser: true },
+          options: {
+            shouldCreateUser: true,
+            emailRedirectTo: undefined,
+          },
         });
         if (error) throw error;
         toast.success("OTP sent to your email address");
@@ -123,7 +126,10 @@ export function UserAuthPage() {
       } else {
         const { error } = await supabaseAuth.auth.signInWithOtp({
           email: contact,
-          options: { shouldCreateUser: true },
+          options: {
+            shouldCreateUser: true,
+            emailRedirectTo: undefined,
+          },
         });
         if (error) throw error;
       }
