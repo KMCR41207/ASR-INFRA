@@ -17,7 +17,7 @@ export function UserAuthPage() {
   const [step, setStep] = useState<Step>("input");
   const [method, setMethod] = useState<Method>("phone");
   const [contact, setContact] = useState("");
-  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
+  const [otp, setOtp] = useState(["", "", "", "", "", "", "", ""]);
   const [loading, setLoading] = useState(false);
 
   // ── Send OTP ──────────────────────────────────────────────────────────────
@@ -65,7 +65,7 @@ export function UserAuthPage() {
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
     const token = otp.join("");
-    if (token.length < 6) return;
+    if (token.length < 8) return;
 
     setLoading(true);
     try {
@@ -107,7 +107,7 @@ export function UserAuthPage() {
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Invalid OTP";
       toast.error(message);
-      setOtp(["", "", "", "", "", ""]);
+      setOtp(["", "", "", "", "", "", "", ""]);
       document.getElementById("otp-0")?.focus();
     } finally {
       setLoading(false);
@@ -133,7 +133,7 @@ export function UserAuthPage() {
         });
         if (error) throw error;
       }
-      setOtp(["", "", "", "", "", ""]);
+      setOtp(["", "", "", "", "", "", "", ""]);
       toast.success("New OTP sent!");
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Failed to resend OTP";
@@ -149,7 +149,7 @@ export function UserAuthPage() {
     const newOtp = [...otp];
     newOtp[index] = value.slice(-1);
     setOtp(newOtp);
-    if (value && index < 5) {
+    if (value && index < 7) {
       document.getElementById(`otp-${index + 1}`)?.focus();
     }
   };
@@ -184,7 +184,7 @@ export function UserAuthPage() {
                 <p className="text-sm text-[#4a6580]">
                   {step === "input"
                     ? "We'll send a verification code to confirm your identity"
-                    : `Check your email for the 6-digit OTP code`}
+                    : `Check your email for the 8-digit OTP code`}
                 </p>
               </div>
             </div>
@@ -259,7 +259,7 @@ export function UserAuthPage() {
               <form onSubmit={handleVerify} className="space-y-6">
                 {/* OTP Boxes */}
                 <div>
-                  <Label className="block text-center mb-4">Enter 6-digit OTP</Label>
+                  <Label className="block text-center mb-4">Enter 8-digit OTP</Label>
                   <div className="flex gap-2 justify-center">
                     {otp.map((digit, index) => (
                       <input
@@ -271,7 +271,7 @@ export function UserAuthPage() {
                         value={digit}
                         onChange={(e) => handleOtpChange(index, e.target.value)}
                         onKeyDown={(e) => handleOtpKeyDown(index, e)}
-                        className="w-11 h-12 text-center text-xl font-bold border-2 rounded-lg outline-none transition-all focus:border-accent focus:ring-2 focus:ring-accent/20 bg-white text-primary"
+                        className="w-10 h-12 text-center text-xl font-bold border-2 rounded-lg outline-none transition-all focus:border-accent focus:ring-2 focus:ring-accent/20 bg-white text-primary"
                       />
                     ))}
                   </div>
@@ -280,7 +280,7 @@ export function UserAuthPage() {
                 <Button
                   type="submit"
                   className="w-full bg-accent hover:bg-accent/90 text-white font-semibold py-3"
-                  disabled={otp.join("").length < 6 || loading}
+                  disabled={otp.join("").length < 8 || loading}
                 >
                   {loading ? "Verifying..." : (
                     <span className="flex items-center justify-center gap-2">
@@ -292,7 +292,7 @@ export function UserAuthPage() {
                 <div className="flex items-center justify-between text-sm">
                   <button
                     type="button"
-                    onClick={() => { setStep("input"); setOtp(["", "", "", "", "", ""]); }}
+                    onClick={() => { setStep("input"); setOtp(["", "", "", "", "", "", "", ""]); }}
                     className="text-[#4a6580] hover:text-primary transition-colors"
                   >
                     ← Change {method === "phone" ? "number" : "email"}
