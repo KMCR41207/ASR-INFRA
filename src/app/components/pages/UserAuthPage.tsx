@@ -46,7 +46,7 @@ export function UserAuthPage() {
           email: contact,
           options: {
             shouldCreateUser: true,
-            emailRedirectTo: undefined,
+            emailRedirectTo: `${window.location.origin}/auth/callback`,
           },
         });
         if (error) throw error;
@@ -128,7 +128,7 @@ export function UserAuthPage() {
           email: contact,
           options: {
             shouldCreateUser: true,
-            emailRedirectTo: undefined,
+            emailRedirectTo: `${window.location.origin}/auth/callback`,
           },
         });
         if (error) throw error;
@@ -184,7 +184,7 @@ export function UserAuthPage() {
                 <p className="text-sm text-[#4a6580]">
                   {step === "input"
                     ? "We'll send a verification code to confirm your identity"
-                    : `Code sent to ${method === "phone" ? "+91 " : ""}${contact}`}
+                    : `Check your email for the 6-digit OTP code`}
                 </p>
               </div>
             </div>

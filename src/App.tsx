@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Link, useLocation, useNavigate } from "re
 import { useState, useRef, useEffect } from "react";
 import { Toaster } from "sonner";
 import { Menu, X, Truck, Phone, ChevronDown, User, LayoutDashboard, LogOut, Shield } from "lucide-react";
+import { supabaseAuth } from "./lib/supabaseAuth";
 
 // Pages
 import { HomePage } from "./app/components/pages/HomePage";
@@ -328,7 +329,31 @@ function Footer() {
   );
 }
 
-function AppLayout() {
+function AuthCallback() {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Supabase puts the token in the URL hash after magic link click
+    supabaseAuth.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        const contact = session.user.email || session.user.phone || "";
+        const method = session.user.email ? "email" : "phone";
+        localStorage.setItem("userAuth", JSON.stringify({ contact, method, verified: true }));
+        navigate("/dashboard", { replace: true });
+      } else {
+        navigate("/login", { replace: true });
+      }
+    });
+  }, [navigate]);
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-[#e8f0f7]">
+      <p className="text-primary font-semibold text-lg">Verifying your login...</p>
+    </div>
+  );
+}
+
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -343,6 +368,7 @@ function AppLayout() {
           <Route path="/dashboard" element={<UserDashboardPage />} />
           <Route path="/my-offers" element={<MyOffersPage />} />
           <Route path="/my-offers/:id" element={<OfferDetailPage />} />
+          <Route path="/auth/callback" element={<AuthCallback />} />
           <Route path="/admin/login" element={<AdminLoginPage />} />
           <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
           <Route path="*" element={<NotFound />} />
