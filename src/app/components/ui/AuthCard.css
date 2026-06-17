@@ -9,24 +9,21 @@
 }
 
 .dot {
-  width: 5px;
-  aspect-ratio: 1;
+  width: 6px;
+  height: 6px;
   position: absolute;
   background-color: #fff;
-  box-shadow: 0 0 10px #ffffff;
-  border-radius: 100px;
-  z-index: 2;
-  right: 0;
-  top: 0;
-  animation: moveDot 6s linear infinite;
+  box-shadow: 0 0 12px 3px #ffffff;
+  border-radius: 50%;
+  z-index: 10;
+  offset-path: border-box;
+  offset-distance: 0%;
+  animation: moveDot 4s linear infinite;
 }
 
 @keyframes moveDot {
-  0%        { top: 0; right: 0; }
-  25%       { top: 0; right: calc(100% - 5px); }
-  50%       { top: calc(100% - 5px); right: calc(100% - 5px); }
-  75%       { top: calc(100% - 5px); right: 0; }
-  100%      { top: 0; right: 0; }
+  0%   { offset-distance: 0%; }
+  100% { offset-distance: 100%; }
 }
 
 .auth-card-inner {
