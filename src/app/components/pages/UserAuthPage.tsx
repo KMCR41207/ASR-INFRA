@@ -3,10 +3,10 @@ import { useNavigate, useSearchParams } from "react-router";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
-import { Card, CardContent, CardHeader } from "../ui/card";
 import { Phone, Mail, ArrowRight, ShieldCheck, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { supabaseAuth } from "../../../lib/supabaseAuth";
+import "../ui/AuthCard.css";
 
 type Step = "input" | "otp";
 type Method = "phone" | "email";
@@ -162,46 +162,55 @@ export function UserAuthPage() {
 
   // ── UI ────────────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-[#e8f0f7] flex items-center justify-center px-4 py-12">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen bg-[#0c0d0d] flex items-center justify-center px-4 py-12">
+      <div className="w-full max-w-md flex flex-col items-center">
         {/* Logo */}
         <div className="text-center mb-8">
-          <span className="text-3xl font-bold text-primary">ASR</span>
+          <span className="text-3xl font-bold text-white">ASR</span>
           <span className="text-3xl font-bold text-accent ml-1">INFRA</span>
-          <p className="text-[#4a6580] mt-2">Verify your identity to request a quote</p>
+          <p className="text-gray-400 mt-2">Verify your identity to request a quote</p>
         </div>
 
-        <Card className="shadow-xl border-0">
-          <CardHeader className="pb-2">
-            <div className="flex items-center gap-3">
-              <div className="bg-accent/10 p-3 rounded-full">
+        {/* Uiverse glowing card wrapper */}
+        <div className="outer w-full">
+          <div className="dot" />
+          <div className="auth-card-inner p-6">
+            <div className="ray" />
+            <div className="line topl" />
+            <div className="line leftl" />
+            <div className="line bottoml" />
+            <div className="line rightl" />
+
+            {/* Header */}
+            <div className="flex items-center gap-3 mb-6 relative z-10">
+              <div className="bg-accent/20 p-3 rounded-full">
                 <ShieldCheck className="w-6 h-6 text-accent" />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-primary">
+                <h2 className="text-xl font-bold text-white">
                   {step === "input" ? "Login to Continue" : "Enter OTP"}
                 </h2>
-                <p className="text-sm text-[#4a6580]">
+                <p className="text-sm text-gray-400">
                   {step === "input"
                     ? "We'll send a verification code to confirm your identity"
                     : `Check your email for the 8-digit OTP code`}
                 </p>
               </div>
             </div>
-          </CardHeader>
 
-          <CardContent className="pt-4">
+            {/* Form */}
+            <div className="relative z-10">
             {step === "input" ? (
               <form onSubmit={handleSendOtp} className="space-y-5">
                 {/* Method Toggle */}
-                <div className="flex rounded-lg overflow-hidden border border-border">
+                <div className="flex rounded-lg overflow-hidden border border-[#333]">
                   <button
                     type="button"
                     onClick={() => { setMethod("phone"); setContact(""); }}
                     className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-semibold transition-all ${
                       method === "phone"
-                        ? "bg-primary text-white"
-                        : "bg-white text-[#4a6580] hover:bg-[#e8f0f7]"
+                        ? "bg-accent text-white"
+                        : "bg-[#1a1a1a] text-gray-400 hover:bg-[#222]"
                     }`}
                   >
                     <Phone className="w-4 h-4" /> Mobile
@@ -211,8 +220,8 @@ export function UserAuthPage() {
                     onClick={() => { setMethod("email"); setContact(""); }}
                     className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-semibold transition-all ${
                       method === "email"
-                        ? "bg-primary text-white"
-                        : "bg-white text-[#4a6580] hover:bg-[#e8f0f7]"
+                        ? "bg-accent text-white"
+                        : "bg-[#1a1a1a] text-gray-400 hover:bg-[#222]"
                     }`}
                   >
                     <Mail className="w-4 h-4" /> Email
@@ -221,14 +230,12 @@ export function UserAuthPage() {
 
                 {/* Input */}
                 <div>
-                  <Label htmlFor="contact">
+                  <Label htmlFor="contact" className="text-gray-300">
                     {method === "phone" ? "Mobile Number" : "Email Address"}
                   </Label>
                   <div className="relative mt-2">
                     {method === "phone" && (
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#4a6580] text-sm font-medium">
-                        +91
-                      </span>
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-medium">+91</span>
                     )}
                     <Input
                       id="contact"
@@ -236,7 +243,7 @@ export function UserAuthPage() {
                       value={contact}
                       onChange={(e) => setContact(e.target.value)}
                       placeholder={method === "phone" ? "98765 43210" : "you@example.com"}
-                      className={method === "phone" ? "pl-12" : ""}
+                      className={`bg-[#1a1a1a] border-[#333] text-white placeholder:text-gray-600 focus:border-accent ${method === "phone" ? "pl-12" : ""}`}
                       required
                       maxLength={method === "phone" ? 10 : undefined}
                     />
@@ -257,10 +264,9 @@ export function UserAuthPage() {
               </form>
             ) : (
               <form onSubmit={handleVerify} className="space-y-6">
-                {/* OTP Boxes */}
                 <div>
-                  <Label className="block text-center mb-4">Enter 8-digit OTP</Label>
-                  <div className="flex gap-2 justify-center">
+                  <Label className="block text-center mb-4 text-gray-300">Enter 8-digit OTP</Label>
+                  <div className="flex gap-1.5 justify-center">
                     {otp.map((digit, index) => (
                       <input
                         key={index}
@@ -271,7 +277,7 @@ export function UserAuthPage() {
                         value={digit}
                         onChange={(e) => handleOtpChange(index, e.target.value)}
                         onKeyDown={(e) => handleOtpKeyDown(index, e)}
-                        className="w-10 h-12 text-center text-xl font-bold border-2 rounded-lg outline-none transition-all focus:border-accent focus:ring-2 focus:ring-accent/20 bg-white text-primary"
+                        className="w-10 h-12 text-center text-xl font-bold border-2 border-[#333] rounded-lg outline-none transition-all focus:border-accent focus:ring-2 focus:ring-accent/20 bg-[#1a1a1a] text-white"
                       />
                     ))}
                   </div>
@@ -293,7 +299,7 @@ export function UserAuthPage() {
                   <button
                     type="button"
                     onClick={() => { setStep("input"); setOtp(["", "", "", "", "", "", "", ""]); }}
-                    className="text-[#4a6580] hover:text-primary transition-colors"
+                    className="text-gray-400 hover:text-white transition-colors"
                   >
                     ← Change {method === "phone" ? "number" : "email"}
                   </button>
@@ -308,10 +314,11 @@ export function UserAuthPage() {
                 </div>
               </form>
             )}
-          </CardContent>
-        </Card>
+            </div>
+          </div>
+        </div>
 
-        <p className="text-center text-xs text-[#4a6580] mt-4">
+        <p className="text-center text-xs text-gray-600 mt-4">
           Your information is secure and will only be used for service requests.
         </p>
       </div>
