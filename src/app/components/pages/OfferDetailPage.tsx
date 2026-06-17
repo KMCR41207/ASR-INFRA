@@ -6,7 +6,8 @@ import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
 import { Label } from "../ui/label";
 import { ArrowLeft, Tag, CheckCircle, XCircle, ArrowLeftRight, IndianRupee, Clock, ShieldCheck } from "lucide-react";
-import { getOfferById, submitCounter, userAcceptOffer, userRejectOffer, type Offer } from "../../lib/offerStore";
+import { getOfferById, updateOffer, addNegotiationEntry, getNegotiationHistory } from "../../../lib/db";
+import type { Offer, NegotiationEntry } from "../../../lib/supabase";
 import { toast } from "sonner";
 
 const statusConfig = {
@@ -20,14 +21,17 @@ export function OfferDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [offer, setOffer] = useState<Offer | null>(null);
+  const [history, setHistory] = useState<NegotiationEntry[]>([]);
   const [showCounter, setShowCounter] = useState(false);
   const [counterAmount, setCounterAmount] = useState("");
   const [counterMessage, setCounterMessage] = useState("");
 
-  const reload = () => {
-    const o = getOfferById(Number(id));
+  const reload = async () => {
+    const o = await getOfferById(Number(id));
     if (!o) { navigate("/my-offers"); return; }
     setOffer(o);
+    const h = await getNegotiationHistory(Number(id));
+    setHistory(h);
   };
 
   useEffect(() => {
@@ -36,25 +40,48 @@ export function OfferDetailPage() {
     reload();
   }, [id, navigate]);
 
-  const handleAccept = () => {
-    userAcceptOffer(Number(id));
+  const handleAccept = async () => {
+    await updateOffer(Number(id), { status: "accepted" });
+    await addNegotiationEntry({
+      offer_id: Number(id),
+      type: "status_update",
+      message: "Offer accepted by user.",
+      author: "user",
+    });
     toast.success("Offer accepted!");
     reload();
   };
 
-  const handleReject = () => {
-    userRejectOffer(Number(id));
+  const handleReject = async () => {
+    await updateOffer(Number(id), { status: "rejected" });
+    await addNegotiationEntry({
+      offer_id: Number(id),
+      type: "status_update",
+      message: "Offer rejected by user.",
+      author: "user",
+    });
     toast.success("Offer rejected.");
     reload();
   };
 
-  const handleCounter = (e: React.FormEvent) => {
+  const handleCounter = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!counterAmount || isNaN(Number(counterAmount)) || Number(counterAmount) <= 0) {
       toast.error("Enter a valid amount");
       return;
     }
-    submitCounter(Number(id), Number(counterAmount), counterMessage);
+    await updateOffer(Number(id), {
+      status: "counter_sent",
+      counter_amount: Number(counterAmount),
+      counter_message: counterMessage,
+    });
+    await addNegotiationEntry({
+      offer_id: Number(id),
+      type: "user_counter",
+      amount: Number(counterAmount),
+      message: counterMessage || `Counter offer of ₹${Number(counterAmount).toLocaleString()}`,
+      author: "user",
+    });
     toast.success("Counter offer submitted!");
     setShowCounter(false);
     setCounterAmount("");
@@ -92,24 +119,24 @@ export function OfferDetailPage() {
               <div>
                 <p className="text-xs text-[#4a6580] uppercase font-semibold mb-1">Offer Amount</p>
                 <p className="text-3xl font-bold text-primary flex items-center gap-1">
-                  <IndianRupee className="w-6 h-6" />{offer.currentAmount.toLocaleString()}
+                  <IndianRupee className="w-6 h-6" />{offer.current_amount.toLocaleString()}
                 </p>
               </div>
-              {offer.counterAmount && (
+              {offer.counter_amount && (
                 <div>
                   <p className="text-xs text-[#4a6580] uppercase font-semibold mb-1">Your Counter</p>
                   <p className="text-3xl font-bold text-blue-600 flex items-center gap-1">
-                    <IndianRupee className="w-6 h-6" />{offer.counterAmount.toLocaleString()}
+                    <IndianRupee className="w-6 h-6" />{offer.counter_amount.toLocaleString()}
                   </p>
                 </div>
               )}
               <div>
                 <p className="text-xs text-[#4a6580] uppercase font-semibold mb-1">Date</p>
                 <p className="text-sm text-primary flex items-center gap-1 mt-1">
-                  <Clock className="w-4 h-4" />{new Date(offer.createdAt).toLocaleDateString()}
+                  <Clock className="w-4 h-4" />{new Date(offer.created_at!).toLocaleDateString()}
                 </p>
-                {offer.expiryDate && (
-                  <p className="text-xs text-red-500 mt-1">Expires: {new Date(offer.expiryDate).toLocaleDateString()}</p>
+                {offer.expiry_date && (
+                  <p className="text-xs text-red-500 mt-1">Expires: {new Date(offer.expiry_date).toLocaleDateString()}</p>
                 )}
               </div>
             </div>
@@ -117,10 +144,10 @@ export function OfferDetailPage() {
               <p className="text-xs text-[#4a6580] uppercase font-semibold mb-1">Description</p>
               <p className="text-[#4a6580]">{offer.description}</p>
             </div>
-            {offer.adminNotes && (
+            {offer.admin_notes && (
               <div className="mt-3 p-3 bg-[#e8f0f7] rounded-lg">
                 <p className="text-xs text-[#4a6580] uppercase font-semibold mb-1">Admin Notes</p>
-                <p className="text-sm text-primary">{offer.adminNotes}</p>
+                <p className="text-sm text-primary">{offer.admin_notes}</p>
               </div>
             )}
           </CardContent>
@@ -135,7 +162,7 @@ export function OfferDetailPage() {
           </CardHeader>
           <CardContent className="p-4">
             <div className="space-y-4">
-              {offer.history.map((entry, i) => {
+              {history.map((entry, i) => {
                 const isAdmin = entry.author === "admin";
                 return (
                   <div key={i} className={`flex gap-3 ${isAdmin ? "" : "flex-row-reverse"}`}>
@@ -152,12 +179,15 @@ export function OfferDetailPage() {
                         <p className={`text-sm ${isAdmin ? "text-[#4a6580]" : "text-[#a8c0d6]"}`}>{entry.message}</p>
                       </div>
                       <p className="text-xs text-[#4a6580] mt-1 px-1">
-                        {isAdmin ? "Admin" : "You"} · {new Date(entry.timestamp).toLocaleString()}
+                        {isAdmin ? "Admin" : "You"} · {new Date(entry.created_at!).toLocaleString()}
                       </p>
                     </div>
                   </div>
                 );
               })}
+              {history.length === 0 && (
+                <p className="text-center text-[#4a6580] text-sm py-4">No negotiation history yet.</p>
+              )}
             </div>
           </CardContent>
         </Card>

@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router";
 import { Card, CardContent } from "../ui/card";
 import { Tag, ArrowLeft, Clock, IndianRupee } from "lucide-react";
-import { getUserOffers, type Offer } from "../../lib/offerStore";
+import { getUserOffers } from "../../../lib/db";
+import type { Offer } from "../../../lib/supabase";
 
 const statusConfig = {
   pending:      { label: "Pending",      color: "bg-yellow-100 text-yellow-700 border-yellow-200" },
@@ -20,7 +21,7 @@ export function MyOffersPage() {
     const auth = localStorage.getItem("userAuth");
     if (!auth) { navigate("/login"); return; }
     const { contact } = JSON.parse(auth);
-    setOffers(getUserOffers(contact));
+    getUserOffers(contact).then(setOffers);
   }, [navigate]);
 
   const filtered = filter === "all" ? offers : offers.filter(o => o.status === filter);
@@ -90,16 +91,16 @@ export function MyOffersPage() {
                           <div className="flex items-center gap-4 text-sm">
                             <span className="flex items-center gap-1 font-bold text-primary">
                               <IndianRupee className="w-4 h-4" />
-                              {offer.currentAmount.toLocaleString()}
+                              {offer.current_amount.toLocaleString()}
                             </span>
-                            {offer.counterAmount && (
+                            {offer.counter_amount && (
                               <span className="flex items-center gap-1 text-blue-600 font-semibold">
-                                Counter: ₹{offer.counterAmount.toLocaleString()}
+                                Counter: ₹{offer.counter_amount.toLocaleString()}
                               </span>
                             )}
                             <span className="flex items-center gap-1 text-[#4a6580]">
                               <Clock className="w-3 h-3" />
-                              {new Date(offer.createdAt).toLocaleDateString()}
+                              {new Date(offer.created_at!).toLocaleDateString()}
                             </span>
                           </div>
                         </div>
@@ -107,9 +108,9 @@ export function MyOffersPage() {
                           <span className={`text-xs font-semibold px-3 py-1.5 rounded-full border ${sc.color}`}>
                             {sc.label}
                           </span>
-                          {offer.expiryDate && (
+                          {offer.expiry_date && (
                             <span className="text-xs text-[#4a6580]">
-                              Expires: {new Date(offer.expiryDate).toLocaleDateString()}
+                              Expires: {new Date(offer.expiry_date).toLocaleDateString()}
                             </span>
                           )}
                         </div>

@@ -2,8 +2,9 @@ import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router";
 import { Card, CardContent } from "../ui/card";
 import { Button } from "../ui/button";
-import { Tag, FileText, LogOut, ChevronRight, Clock, CheckCircle, XCircle, ArrowLeftRight } from "lucide-react";
-import { getUserOffers, type Offer } from "../../lib/offerStore";
+import { Tag, FileText, LogOut, ChevronRight, Clock, CheckCircle, ArrowLeftRight } from "lucide-react";
+import { getUserOffers } from "../../../lib/db";
+import type { Offer } from "../../../lib/supabase";
 
 const statusConfig = {
   pending:      { label: "Pending",      color: "bg-yellow-100 text-yellow-700 border-yellow-200" },
@@ -22,7 +23,7 @@ export function UserDashboardPage() {
     if (!auth) { navigate("/login"); return; }
     const parsed = JSON.parse(auth);
     setUser(parsed);
-    setOffers(getUserOffers(parsed.contact));
+    getUserOffers(parsed.contact).then(setOffers);
   }, [navigate]);
 
   const handleLogout = () => {
@@ -125,7 +126,7 @@ export function UserDashboardPage() {
                       <CardContent className="p-4 flex items-center justify-between">
                         <div>
                           <p className="font-semibold text-primary">{offer.title}</p>
-                          <p className="text-sm text-[#4a6580]">₹{offer.currentAmount.toLocaleString()}</p>
+                          <p className="text-sm text-[#4a6580]">₹{offer.current_amount.toLocaleString()}</p>
                         </div>
                         <span className={`text-xs font-semibold px-3 py-1 rounded-full border ${sc.color}`}>
                           {sc.label}
