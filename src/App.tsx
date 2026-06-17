@@ -3,6 +3,7 @@ import { useState, useRef, useEffect } from "react";
 import { Toaster } from "sonner";
 import { Menu, X, Truck, Phone, ChevronDown, User, LayoutDashboard, LogOut, Shield } from "lucide-react";
 import { supabaseAuth } from "./lib/supabaseAuth";
+import { PageLoader } from "./app/components/ui/PageLoader";
 
 // Pages
 import { HomePage } from "./app/components/pages/HomePage";
@@ -381,6 +382,15 @@ function AppLayout() {
 }
 
 export default function App() {
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 1500);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (loading) return <PageLoader />;
+
   return (
     <BrowserRouter>
       <Toaster position="top-right" richColors />
