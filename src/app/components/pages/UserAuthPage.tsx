@@ -54,7 +54,13 @@ export function UserAuthPage() {
       }
       setStep("otp");
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Failed to send OTP";
+      const isNetworkError =
+        err instanceof TypeError && err.message === "Failed to fetch";
+      const message = isNetworkError
+        ? "Service temporarily unavailable. Please try again later."
+        : err instanceof Error
+        ? err.message
+        : "Failed to send OTP";
       toast.error(message);
     } finally {
       setLoading(false);
@@ -105,7 +111,13 @@ export function UserAuthPage() {
 
       setTimeout(() => navigate(destination), 800);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Invalid OTP";
+      const isNetworkError =
+        err instanceof TypeError && err.message === "Failed to fetch";
+      const message = isNetworkError
+        ? "Service temporarily unavailable. Please try again later."
+        : err instanceof Error
+        ? err.message
+        : "Invalid OTP";
       toast.error(message);
       setOtp(["", "", "", "", "", "", "", ""]);
       document.getElementById("otp-0")?.focus();
@@ -136,7 +148,13 @@ export function UserAuthPage() {
       setOtp(["", "", "", "", "", "", "", ""]);
       toast.success("New OTP sent!");
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Failed to resend OTP";
+      const isNetworkError =
+        err instanceof TypeError && err.message === "Failed to fetch";
+      const message = isNetworkError
+        ? "Service temporarily unavailable. Please try again later."
+        : err instanceof Error
+        ? err.message
+        : "Failed to resend OTP";
       toast.error(message);
     } finally {
       setLoading(false);

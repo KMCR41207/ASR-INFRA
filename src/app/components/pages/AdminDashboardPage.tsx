@@ -6,15 +6,14 @@ import { Badge } from "../ui/badge";
 import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
 import { Label } from "../ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { LogOut, Mail, Phone, User, Calendar, MessageSquare, MapPin, Package, Trash2, Tag, Plus, IndianRupee, ArrowLeftRight, CheckCircle, XCircle, Send } from "lucide-react";
 import { toast } from "sonner";
 import {
   getQuoteRequests, updateQuoteRequest, deleteQuoteRequest,
   getContactRequests, updateContactRequest, deleteContactRequest,
-  getOffers, createOffer, updateOffer, addNegotiationEntry,
+  getOffers, createOffer, updateOffer, addNegotiationEntry, getNegotiationHistory,
 } from "../../../lib/db";
-import type { QuoteRequest, ContactRequest, Offer as DBOffer } from "../../../lib/supabase";
+import type { QuoteRequest, ContactRequest, Offer as DBOffer, NegotiationEntry } from "../../../lib/supabase";
 
 export function AdminDashboardPage() {
   const navigate = useNavigate();
@@ -31,6 +30,7 @@ export function AdminDashboardPage() {
   const [editingOffer, setEditingOffer] = useState<number | null>(null);
   const [noteText, setNoteText] = useState("");
   const [offerText, setOfferText] = useState("");
+  const [negotiationHistory, setNegotiationHistory] = useState<NegotiationEntry[]>([]);
 
   useEffect(() => {
     if (!localStorage.getItem("adminAuth")) navigate("/admin/login");
@@ -46,6 +46,11 @@ export function AdminDashboardPage() {
     setQuoteRequests(quotes);
     setContactRequests(contacts);
     setOffers(offerList);
+  };
+
+  const loadNegotiationHistory = async (offerId: number) => {
+    const history = await getNegotiationHistory(offerId);
+    setNegotiationHistory(history);
   };
 
   const handleLogout = () => {
@@ -389,7 +394,7 @@ Thank you once again for trusting ASR Infra. We look forward to working with you
                     <Tag className="w-5 h-5 text-accent" /> Offer Management
                   </p>
                   <Button
-                    onClick={() => { setShowNewOffer(!showNewOffer); setSelectedOffer(null); }}
+                    onClick={() => { setShowNewOffer(!showNewOffer); setSelectedOffer(null); setNegotiationHistory([]); }}
                     className="bg-accent text-white hover:bg-accent/90 gap-2"
                     size="sm"
                   >
@@ -482,14 +487,17 @@ Thank you once again for trusting ASR Infra. We look forward to working with you
                         selectedOffer.status === "accepted" ? "bg-green-100 text-green-700 border-green-200" :
                         "bg-red-100 text-red-700 border-red-200"
                       }`}>{selectedOffer.status.replace("_", " ").toUpperCase()}</span>
-                      <Button size="sm" variant="outline" onClick={() => setSelectedOffer(null)}>Close</Button>
+                      <Button size="sm" variant="outline" onClick={() => { setSelectedOffer(null); setNegotiationHistory([]); }}>Close</Button>
                     </div>
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {/* Negotiation History */}
                   <div className="bg-[#e8f0f7] rounded-xl p-4 space-y-3 max-h-72 overflow-y-auto">
-                    {selectedOffer && ([] as any[]).map((entry: any, i: number) => {
+                    {negotiationHistory.length === 0 && (
+                      <p className="text-sm text-muted-foreground text-center">No negotiation history yet.</p>
+                    )}
+                    {negotiationHistory.map((entry, i) => {
                       const isAdmin = entry.author === "admin";
                       return (
                         <div key={i} className={`flex gap-3 ${isAdmin ? "" : "flex-row-reverse"}`}>
@@ -506,7 +514,7 @@ Thank you once again for trusting ASR Infra. We look forward to working with you
                               <p className={`text-sm ${isAdmin ? "text-[#4a6580]" : "text-[#a8c0d6]"}`}>{entry.message}</p>
                             </div>
                             <p className="text-xs text-[#4a6580] mt-1 px-1">
-                              {isAdmin ? "Admin" : "User"} · {new Date(entry.timestamp).toLocaleString()}
+                              {isAdmin ? "Admin" : "User"} · {new Date(entry.created_at ?? "").toLocaleString()}
                             </p>
                           </div>
                         </div>
@@ -527,6 +535,7 @@ Thank you once again for trusting ASR Infra. We look forward to working with you
                             toast.success("Offer accepted!");
                             loadData();
                             setSelectedOffer(null);
+                            setNegotiationHistory([]);
                           }}
                         >
                           <CheckCircle className="w-4 h-4" /> Accept
@@ -540,6 +549,7 @@ Thank you once again for trusting ASR Infra. We look forward to working with you
                             toast.success("Offer rejected.");
                             loadData();
                             setSelectedOffer(null);
+                            setNegotiationHistory([]);
                           }}
                         >
                           <XCircle className="w-4 h-4" /> Reject
@@ -568,6 +578,7 @@ Thank you once again for trusting ASR Infra. We look forward to working with you
                             setReviseMessage("");
                             loadData();
                             setSelectedOffer(null);
+                            setNegotiationHistory([]);
                           }}
                         >
                           <ArrowLeftRight className="w-4 h-4" /> Revise
@@ -622,7 +633,7 @@ Thank you once again for trusting ASR Infra. We look forward to working with you
                             <Button
                               size="sm"
                               variant="outline"
-                              onClick={() => { setSelectedOffer(offer); setShowNewOffer(false); }}
+                              onClick={() => { setSelectedOffer(offer); setShowNewOffer(false); loadNegotiationHistory(offer.id!); }}
                               className="text-xs gap-1"
                             >
                               <ArrowLeftRight className="w-3 h-3" /> View

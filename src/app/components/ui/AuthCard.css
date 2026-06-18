@@ -6,8 +6,18 @@
   padding: 1px;
   background: radial-gradient(circle 230px at 0% 0%, #ffffff, #0c0d0d);
   position: relative;
+  overflow: hidden;
 }
 
+/*
+ * Glowing dot that traces the card border.
+ * Uses keyframe-driven top/left positioning to walk all 4 edges:
+ *   0%   → top-right corner  (start)
+ *  25%   → top-left corner
+ *  50%   → bottom-left corner
+ *  75%   → bottom-right corner
+ * 100%   → top-right corner  (loop)
+ */
 .dot {
   width: 6px;
   height: 6px;
@@ -16,14 +26,22 @@
   box-shadow: 0 0 12px 3px #ffffff;
   border-radius: 50%;
   z-index: 10;
-  offset-path: border-box;
-  offset-distance: 0%;
-  animation: moveDot 4s linear infinite;
+  /* Start at top-right */
+  top: 0;
+  right: 0;
+  animation: traceBorder 4s linear infinite;
 }
 
-@keyframes moveDot {
-  0%   { offset-distance: 0%; }
-  100% { offset-distance: 100%; }
+@keyframes traceBorder {
+  /* top-right → top-left (across the top) */
+  0%   { top: -3px; left: calc(100% - 3px); }
+  25%  { top: -3px; left: -3px; }
+  /* top-left → bottom-left (down the left side) */
+  50%  { top: calc(100% - 3px); left: -3px; }
+  /* bottom-left → bottom-right (across the bottom) */
+  75%  { top: calc(100% - 3px); left: calc(100% - 3px); }
+  /* bottom-right → top-right (up the right side) */
+  100% { top: -3px; left: calc(100% - 3px); }
 }
 
 .auth-card-inner {
